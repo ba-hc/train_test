@@ -1,0 +1,901 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#203d43">
+  <title>Cloudworks — The Coastal Line</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #183b3b;
+      --ink-soft: #54716a;
+      --cream: #fff7e8;
+      --paper: #fffaf0;
+      --mint: #dcebd9;
+      --leaf: #66865b;
+      --leaf-dark: #315b4b;
+      --sun: #efb45c;
+      --coral: #d9795a;
+      --line: rgba(43, 79, 65, .16);
+      --deep-shadow: 0 18px 54px rgba(18, 49, 49, .22);
+      font-family: 'DM Sans', 'Trebuchet MS', sans-serif;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-optical-sizing: auto;
+    }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #29465a; }
+    body { color: var(--ink); user-select: none; -webkit-tap-highlight-color: transparent; }
+    button { font: inherit; color: inherit; }
+    button:focus-visible { outline: 3px solid #f4bd65; outline-offset: 3px; }
+    ::selection { color: #183b3b; background: #f3d091; }
+    #game { position: fixed; inset: 0; isolation: isolate; overflow: hidden; background: linear-gradient(#57617d, #c49c7b 70%, #588494); }
+    #world { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+    .world-vignette { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(18,36,54,.24), transparent 27%, transparent 63%, rgba(12,42,48,.16)); }
+    .topbar { position: absolute; z-index: 3; inset: 22px 28px auto; display: flex; align-items: flex-start; justify-content: flex-start; gap: 20px; pointer-events: none; }
+    .brand { display: flex; align-items: center; gap: 12px; color: #fff8e9; text-shadow: 0 2px 18px rgba(14, 43, 48, .32); }
+    .brand-mark { width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid rgba(255,248,233,.64); border-radius: 14px 14px 14px 5px; background: rgba(26,67,66,.32); }
+    .brand-mark svg { width: 24px; height: 24px; }
+    .brand-name { font-size: 12px; font-weight: 700; letter-spacing: .2em; line-height: 1.2; }
+    .brand-route { margin-top: 5px; font-size: 10px; font-weight: 600; letter-spacing: .16em; opacity: .82; }
+    .top-stats { display: flex; gap: 9px; margin-left: 22px; pointer-events: auto; }
+    .top-stat { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 13px; border: 1px solid rgba(255,249,237,.55); border-radius: 14px; color: #fff8e9; background: rgba(21,56,58,.35); box-shadow: 0 4px 20px rgba(14,38,47,.08); font-size: 12px; font-weight: 600; text-shadow: 0 1px 8px rgba(0,0,0,.2); }
+    .top-stat svg { width: 16px; height: 16px; flex: 0 0 auto; }
+    .stat-label { opacity: .75; font-size: 10px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; }
+    #coins, #streak { font-variant-numeric: tabular-nums; }
+    .info-panel { position: absolute; z-index: 2; top: 100px; left: 28px; width: 232px; padding: 17px 18px 15px; border: 1px solid rgba(255,255,255,.52); border-radius: 20px 20px 20px 7px; background: rgba(255,248,232,.94); box-shadow: var(--deep-shadow); }
+    .info-kicker { display: flex; align-items: center; gap: 7px; color: var(--leaf-dark); font-size: 10px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; }
+    .route-dot { width: 7px; height: 7px; border-radius: 50%; background: #d87b56; box-shadow: 0 0 0 4px rgba(216,123,86,.14); }
+    .destination { margin: 8px 0 2px; font: 700 25px/1.05 'Fraunces', Georgia, serif; letter-spacing: -.035em; }
+    .station-caption { color: var(--ink-soft); font-size: 12px; }
+    .passenger-row { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 12px; }
+    .passenger-label { color: var(--ink-soft); }
+    #passengers { font-weight: 700; font-variant-numeric: tabular-nums; }
+    .conditions { position: absolute; z-index: 2; top: 100px; right: 28px; display: flex; align-items: center; gap: 9px; padding: 10px 14px; border: 1px solid rgba(255,255,255,.5); border-radius: 15px; background: rgba(255,248,232,.9); box-shadow: 0 9px 30px rgba(24,51,51,.13); }
+    .weather-icon { width: 27px; height: 27px; display: grid; place-items: center; color: var(--leaf-dark); background: #e4eedf; border-radius: 9px; }
+    .weather-icon svg { width: 17px; height: 17px; }
+    .weather-copy { display: grid; gap: 2px; }
+    .weather-copy strong { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+    .weather-copy span { color: var(--ink-soft); font-size: 10px; }
+    .weather-cross .weather-icon { color: #98663b; background: #f5e4c4; }
+    .toast { position: absolute; z-index: 4; top: 183px; left: 50%; max-width: min(540px, calc(100vw - 28px)); transform: translate(-50%, -12px); padding: 11px 17px; border: 1px solid rgba(255,255,255,.5); border-radius: 12px 12px 12px 4px; color: #fff9ed; background: rgba(35,71,65,.92); box-shadow: 0 10px 28px rgba(20,45,45,.2); text-align: center; font-size: 12px; font-weight: 600; opacity: 0; pointer-events: none; transition: opacity .25s ease, transform .25s ease; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .toast.warning { background: #8c573e; }
+    .bottom-dock { position: absolute; z-index: 2; inset: auto 26px 24px; display: grid; grid-template-columns: minmax(180px,1fr) minmax(290px,430px) minmax(180px,1fr); align-items: end; gap: 20px; pointer-events: none; }
+    .controls-group { display: flex; gap: 10px; pointer-events: auto; }
+    .control-button { min-width: 116px; display: flex; align-items: center; gap: 11px; padding: 11px 15px; border: 1px solid rgba(255,255,255,.67); border-radius: 16px 16px 16px 5px; color: #fffaf0; background: rgba(31,74,67,.91); box-shadow: 0 12px 26px rgba(15,43,47,.2); cursor: pointer; touch-action: none; transition: transform .15s ease, background .15s ease, box-shadow .15s ease; }
+    .control-button:hover { transform: translateY(-2px); background: #315f50; }
+    .control-button:active, .control-button.is-held { transform: translateY(2px) scale(.98); background: #254c43; box-shadow: 0 5px 12px rgba(15,43,47,.19); }
+    .control-button.brake { color: var(--ink); background: rgba(255,248,232,.95); }
+    .control-button.brake:hover, .control-button.brake.is-held { background: #f5dfbe; }
+    .control-icon { width: 29px; height: 29px; display: grid; place-items: center; border-radius: 10px; background: rgba(255,255,255,.14); }
+    .brake .control-icon { background: #f0e4cc; }
+    .control-icon svg { width: 18px; height: 18px; }
+    .control-copy { display: grid; gap: 2px; text-align: left; }
+    .control-copy strong { font-size: 10px; letter-spacing: .1em; }
+    .control-copy small { font-size: 10px; opacity: .73; }
+    .speed-hud { display: flex; flex-direction: column; align-items: center; justify-self: center; width: 100%; margin-bottom: 3px; color: #fff8e9; text-shadow: 0 2px 12px rgba(18,45,49,.3); }
+    .speed-number { display: flex; align-items: baseline; gap: 6px; font: 700 39px/.95 'Fraunces', Georgia, serif; letter-spacing: -.05em; font-variant-numeric: tabular-nums; }
+    .speed-number small { font: 600 10px/1 'DM Sans', sans-serif; letter-spacing: .13em; }
+    .speed-track { width: min(300px, 100%); height: 4px; overflow: hidden; margin-top: 9px; border-radius: 10px; background: rgba(255,248,233,.35); }
+    .speed-fill { width: 0%; height: 100%; border-radius: inherit; background: #f4c46e; box-shadow: 0 0 11px rgba(255,209,126,.8); transition: width .15s linear; }
+    .speed-note { margin-top: 6px; font-size: 9px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; opacity: .82; }
+    .route-card { grid-column: 2; grid-row: 2; width: 100%; padding: 13px 16px 12px; border: 1px solid rgba(255,255,255,.65); border-radius: 17px 17px 17px 6px; background: rgba(255,248,232,.95); box-shadow: 0 13px 34px rgba(18,47,50,.19); pointer-events: auto; }
+    .route-names { display: flex; justify-content: space-between; align-items: center; color: var(--ink); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .route-name { max-width: 45%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .route-line { position: relative; height: 5px; margin: 11px 2px 9px; border-radius: 8px; background: #d7e4d7; }
+    .route-fill { width: 0%; height: 100%; border-radius: inherit; background: linear-gradient(90deg,#7d9a63,#e7b65d); transition: width .18s linear; }
+    .tram-marker { position: absolute; top: 50%; left: 0%; width: 13px; height: 13px; transform: translate(-50%,-50%); border: 2px solid var(--paper); border-radius: 50%; background: var(--coral); box-shadow: 0 1px 5px rgba(29,64,53,.4); transition: left .18s linear; }
+    .comfort-row { display: flex; align-items: center; gap: 9px; }
+    .comfort-label { min-width: 66px; color: var(--ink-soft); font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+    .comfort-track { flex: 1; height: 6px; overflow: hidden; border-radius: 8px; background: #e6dfcd; }
+    .comfort-fill { width: 100%; height: 100%; border-radius: inherit; background: #6e9964; transition: width .25s ease, background .25s ease; }
+    .comfort-value { width: 30px; color: var(--ink); text-align: right; font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .view-controls { position: absolute; z-index: 2; right: 28px; bottom: 172px; display: flex; gap: 6px; }
+    .view-button { width: 35px; height: 35px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.55); border-radius: 11px; color: #fff9ed; background: rgba(31,67,66,.55); cursor: pointer; }
+    .view-button:hover { background: rgba(31,67,66,.88); }
+    .view-button svg { width: 17px; height: 17px; }
+    .view-caption { align-self: center; margin-right: 3px; color: #fff9ed; font-size: 9px; font-weight: 600; letter-spacing: .13em; text-shadow: 0 1px 8px rgba(0,0,0,.45); }
+    .subtitle { position: absolute; z-index: 4; left: 50%; bottom: 238px; width: min(620px, calc(100vw - 36px)); transform: translateX(-50%); color: #fff9ed; text-align: center; text-shadow: 0 2px 10px rgba(17,45,52,.75); font: 600 16px/1.35 'Fraunces', Georgia, serif; pointer-events: none; }
+    .phase-panel { position: absolute; z-index: 5; top: 50%; left: 50%; width: min(408px, calc(100vw - 34px)); transform: translate(-50%,-48%) scale(.97); padding: 23px 25px 22px; border: 1px solid rgba(255,255,255,.85); border-radius: 22px 22px 22px 7px; background: var(--paper); box-shadow: 0 28px 80px rgba(14,42,48,.32); opacity: 0; pointer-events: none; transition: opacity .28s ease, transform .28s cubic-bezier(.2,.7,.25,1); }
+    .phase-panel.open { transform: translate(-50%,-50%) scale(1); opacity: 1; pointer-events: auto; }
+    .phase-tag { display: flex; align-items: center; gap: 8px; color: var(--leaf); font-size: 10px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; }
+    .phase-tag::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--sun); }
+    .phase-panel h2, .workshop-panel h2 { margin: 10px 0 6px; font: 700 29px/1.03 'Fraunces', Georgia, serif; letter-spacing: -.04em; }
+    .phase-panel p, .workshop-panel p { margin: 0; color: var(--ink-soft); font-size: 13px; line-height: 1.55; }
+    .phase-detail { display: flex; align-items: center; gap: 10px; margin: 17px 0; padding: 11px 12px; border-radius: 12px; background: #f2efdf; color: var(--ink-soft); font-size: 11px; }
+    .phase-detail strong { color: var(--ink); }
+    .phase-buttons { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 18px; }
+    .action-button { min-height: 43px; padding: 0 16px; border: 0; border-radius: 12px 12px 12px 4px; color: #fff9ec; background: var(--leaf-dark); box-shadow: 0 5px 13px rgba(41,82,63,.18); font-size: 12px; font-weight: 700; cursor: pointer; transition: transform .15s ease, background .15s ease; }
+    .action-button:hover { transform: translateY(-1px); background: #244c40; }
+    .action-button.secondary { color: var(--ink); background: #e8eddf; box-shadow: none; }
+    .action-button.secondary:hover { background: #dce7d3; }
+    .action-button:disabled { cursor: default; opacity: .55; transform: none; }
+    .workshop-panel { position: absolute; z-index: 5; top: 50%; right: 30px; width: min(430px, calc(100vw - 34px)); max-height: min(610px, calc(100vh - 170px)); overflow: auto; transform: translate(18px,-50%); padding: 24px; border: 1px solid rgba(255,255,255,.8); border-radius: 22px 22px 22px 7px; background: var(--paper); box-shadow: 0 28px 80px rgba(14,42,48,.32); opacity: 0; pointer-events: none; transition: opacity .25s ease, transform .25s ease; scrollbar-color: #9aaf8b #e9eadc; scrollbar-width: thin; }
+    .workshop-panel.open { transform: translate(0,-50%); opacity: 1; pointer-events: auto; }
+    .workshop-subtitle { margin-bottom: 18px !important; }
+    .part-list { display: grid; gap: 10px; }
+    .part-row { position: relative; display: grid; grid-template-columns: 44px minmax(0,1fr) auto; align-items: center; gap: 12px; min-height: 77px; padding: 11px; border: 1px solid #e6e5d5; border-radius: 14px 14px 14px 5px; background: #fffdf5; }
+    .part-icon { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 12px; color: var(--leaf-dark); background: #e8efdf; }
+    .part-icon svg { width: 23px; height: 23px; }
+    .part-copy { min-width: 0; }
+    .part-copy strong { display: block; margin-bottom: 3px; font: 700 16px/1.1 'Fraunces', Georgia, serif; }
+    .part-copy span { display: block; color: var(--ink-soft); font-size: 10px; line-height: 1.35; }
+    .part-action { min-height: 34px; padding: 0 10px; border: 0; border-radius: 10px 10px 10px 3px; color: #fff9ec; background: #537850; font-size: 10px; font-weight: 700; cursor: pointer; }
+    .part-action:disabled { color: #607463; background: #e1ebdc; cursor: default; }
+    .work-progress { margin-top: 13px; padding: 13px 14px; border-radius: 12px; background: #f1f0e3; }
+    .progress-head { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 9px; color: var(--ink-soft); font-size: 10px; }
+    .progress-head strong { color: var(--ink); font-size: 10px; }
+    .progress-track { height: 7px; overflow: hidden; border-radius: 8px; background: #dce3d4; }
+    .progress-fill { width: 0%; height: 100%; border-radius: inherit; background: linear-gradient(90deg,#739367,#e1b86c); transition: width .1s linear; }
+    .workshop-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 15px; }
+    .workshop-footer small { max-width: 170px; color: var(--ink-soft); font-size: 10px; line-height: 1.4; }
+    .workshop-open-label { position: absolute; z-index: 2; top: 92px; left: 50%; transform: translateX(-50%); color: #fff7e7; font: 700 10px/1.2 'DM Sans',sans-serif; letter-spacing: .19em; text-align: center; text-shadow: 0 2px 14px rgba(22,42,42,.7); opacity: 0; transition: opacity .25s; pointer-events: none; }
+    .workshop-open-label.show { opacity: 1; }
+    .loading-note { position: absolute; z-index: 10; inset: 50% auto auto 50%; transform: translate(-50%,-50%); padding: 12px 16px; border-radius: 12px; color: var(--ink); background: var(--paper); font-size: 13px; box-shadow: var(--deep-shadow); }
+    .loading-note[hidden] { display: none; }
+    @media (max-width: 820px) {
+      .topbar { inset: 13px 14px auto; align-items: flex-start; gap: 9px; }
+      .brand { gap: 8px; }
+      .brand-mark { width: 35px; height: 35px; border-radius: 12px 12px 12px 4px; }
+      .brand-name { font-size: 10px; }
+      .brand-route { margin-top: 3px; font-size: 8px; }
+      .top-stats { gap: 5px; margin-left: 8px; }
+      .top-stat svg { width: 14px; height: 14px; }
+      .stat-label { display: none; }
+      .info-panel { top: 67px; left: 14px; width: 177px; padding: 12px 13px 11px; border-radius: 15px 15px 15px 5px; }
+      .destination { margin-top: 6px; font-size: 20px; }
+      .info-kicker { font-size: 8px; }
+      .station-caption { font-size: 10px; }
+      .passenger-row { margin-top: 10px; padding-top: 9px; font-size: 10px; }
+      .conditions { top: 67px; right: 14px; gap: 6px; padding: 7px 9px; border-radius: 12px; }
+      .weather-icon { width: 23px; height: 23px; }
+      .weather-copy strong { font-size: 9px; }
+      .weather-copy span { font-size: 8px; }
+      .toast { top: 142px; font-size: 11px; }
+      .bottom-dock { inset: auto 12px 13px; grid-template-columns: 1fr 1.35fr 1fr; gap: 7px; align-items: end; }
+      .controls-group { gap: 6px; }
+      .control-button { min-width: 0; width: 100%; justify-content: center; gap: 6px; padding: 9px 6px; border-radius: 13px 13px 13px 4px; }
+      .control-icon { width: 25px; height: 25px; border-radius: 8px; }
+      .control-icon svg { width: 16px; height: 16px; }
+      .control-copy strong { font-size: 8px; }
+      .control-copy small { font-size: 8px; }
+      .speed-number { font-size: 31px; }
+      .speed-track { margin-top: 7px; }
+      .speed-note { margin-top: 5px; font-size: 7px; }
+      .route-card { grid-column: 1 / -1; grid-row: 2; margin-top: 3px; padding: 9px 12px 8px; border-radius: 14px 14px 14px 5px; }
+      .route-names { font-size: 8px; }
+      .route-line { height: 4px; margin: 8px 2px; }
+      .comfort-label { min-width: 55px; font-size: 8px; }
+      .comfort-value { font-size: 9px; }
+      .view-controls { right: 13px; bottom: 165px; }
+      .view-caption { display: none; }
+      .view-button { width: 31px; height: 31px; border-radius: 9px; }
+      .subtitle { bottom: 226px; font-size: 14px; }
+      .phase-panel { top: 44%; padding: 19px 19px 18px; }
+      .phase-panel h2, .workshop-panel h2 { font-size: 25px; }
+      .workshop-panel { top: 47%; right: 14px; width: min(410px, calc(100vw - 28px)); max-height: min(520px, calc(100vh - 180px)); padding: 18px; border-radius: 18px 18px 18px 6px; }
+      .workshop-open-label { top: 72px; font-size: 8px; }
+    }
+    @media (max-width: 420px) {
+      .top-stat { padding: 0 7px; }
+      .info-panel { width: 157px; }
+      .conditions { top: 146px; right: 14px; }
+      .toast { top: 188px; }
+      .bottom-dock { grid-template-columns: .95fr 1.05fr .95fr; }
+      .control-button { flex-direction: column; gap: 4px; padding: 6px 3px; }
+      .control-copy { text-align: center; }
+      .speed-number { font-size: 28px; }
+      .view-controls { bottom: 162px; }
+    }
+    @media (max-height: 680px) and (min-width: 821px) {
+      .bottom-dock { bottom: 12px; }
+      .phase-panel { top: 47%; }
+      .workshop-panel { max-height: calc(100vh - 128px); }
+      .info-panel, .conditions { top: 84px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+  </style>
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.js" } }
+  </script>
+</head>
+<body>
+  <main id="game" aria-label="Cloudworks Coastal Line tram game">
+    <canvas id="world" aria-label="A tram route above an ocean of clouds"></canvas>
+    <div class="world-vignette" aria-hidden="true"></div>
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18.5h16M6 18V9.5l6-4 6 4V18M9 18v-5h6v5M3.5 9.7 12 4l8.5 5.7M7.5 8.5V5.2h3"/><path d="M18.5 5.5V3.7"/></svg></div>
+        <div><div class="brand-name">CLOUDWORKS</div><div class="brand-route">THE COASTAL LINE</div></div>
+      </div>
+      <div class="top-stats">
+        <div class="top-stat" title="Tide tokens"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5c2.3 3.4 6.2 7.3 6.2 11.2a6.2 6.2 0 1 1-12.4 0C5.8 10.8 9.7 6.9 12 3.5Z"/><path d="M9 15.1c.1 1.5 1.1 2.3 2.4 2.6"/></svg><span id="coins">125</span><span class="stat-label">shells</span></div>
+        <div class="top-stat" title="Smooth arrival streak"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2 14 8l5.2 1-3.8 3.6.9 5.3-4.3-2.5-4.4 2.5.9-5.3L4.7 9 10 8l2-4.8Z"/><path d="m16.7 16.4 1.1 2.7M7.3 16.4l-1.1 2.7"/></svg><span id="streak">0</span><span class="stat-label">streak</span></div>
+      </div>
+    </header>
+
+    <section class="info-panel" aria-live="polite">
+      <div class="info-kicker"><span class="route-dot"></span><span id="leg-label">OUTBOUND • COASTAL LINE</span></div>
+      <h1 class="destination" id="destination">Mango Tide</h1>
+      <div class="station-caption" id="station-caption">Saltlight Terminus → island stop</div>
+      <div class="passenger-row"><span class="passenger-label">Aboard</span><strong id="passengers">12 / 16</strong></div>
+    </section>
+
+    <div class="conditions" id="conditions" aria-live="polite">
+      <div class="weather-icon" aria-hidden="true"><svg id="weather-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h11c1.6 0 2.5-1 2.5-2.2S16.6 3.5 15.4 3.5c-1 0-1.8.6-2 1.5M3 12h16c1.3 0 2.2.8 2.2 2s-.9 2-2 2c-.9 0-1.6-.5-1.9-1.2M5 16h6"/></svg></div>
+      <div class="weather-copy"><strong id="weather-name">Steady</strong><span id="weather-detail">clear rail, easy pace</span></div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <div class="view-controls" aria-label="Camera trim controls">
+      <span class="view-caption">VIEW TRIM</span>
+      <button class="view-button" id="view-left" aria-label="Shift view left" title="View left (←)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m14.5 5-7 7 7 7"/></svg></button>
+      <button class="view-button" id="view-right" aria-label="Shift view right" title="View right (→)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9.5 5 7 7-7 7"/></svg></button>
+    </div>
+
+    <section class="phase-panel" id="phase-panel" aria-live="polite" aria-labelledby="phase-title">
+      <div class="phase-tag" id="phase-tag">Arrival • Island platform</div>
+      <h2 id="phase-title">Mango Tide</h2>
+      <p id="phase-copy">The platform lanterns are glowing. Ease in, then open the doors for the waiting townsfolk.</p>
+      <div class="phase-detail" id="phase-detail"><span>✦</span><span>Leg comfort <strong id="arrival-comfort">100%</strong> <span id="arrival-bonus">• +75 smooth arrival</span></span></div>
+      <div class="phase-buttons" id="phase-buttons"></div>
+    </section>
+
+    <section class="workshop-panel" id="workshop-panel" aria-live="polite" aria-labelledby="workshop-title">
+      <div class="phase-tag">Oliver's home island • Saltlight</div>
+      <h2 id="workshop-title">Cloudworks workshop</h2>
+      <p class="workshop-subtitle" id="workshop-copy">A little care for the old tram. Choose an upgrade; Oliver will take it from there.</p>
+      <div class="part-list">
+        <div class="part-row">
+          <div class="part-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20c0-7 1.2-11.4 6.5-15M12 20c-.2-4.6-2.6-7.7-6.8-9.7M12 15c2.8-2 5.3-2.1 8-1.3M9.4 12c.2-2.4-.5-4.1-2-5.7M12 20v-5"/><path d="M18.5 5c.1 2.6 1.4 3.9 3 4.5M5.2 10c-1.3.5-2.4.2-3.6-.6"/></svg></div>
+          <div class="part-copy"><strong>Hearth leaves</strong><span id="leaves-status">Lifting the old part</span></div>
+          <button class="part-action" id="install-leaves">Fit leaves</button>
+        </div>
+        <div class="part-row">
+          <div class="part-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16M6 19V8h12v11M8 8V5h8v3M8.5 12h2m3 0h2M8.5 15.5h2m3 0h2"/><path d="M10 5V3.5h4V5"/></svg></div>
+          <div class="part-copy"><strong>Little Companion</strong><span id="companion-status">Preparing the tram</span></div>
+          <button class="part-action" id="install-companion">Prepare</button>
+        </div>
+      </div>
+      <div class="work-progress">
+        <div class="progress-head"><strong id="work-stage">Sit back and watch the workshop.</strong><span id="work-percent">Ready</span></div>
+        <div class="progress-track" role="progressbar" id="work-progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Workshop progress"><div class="progress-fill" id="work-fill"></div></div>
+      </div>
+      <div class="workshop-footer"><small id="workshop-footnote">Two small upgrades, a brighter ride.</small><button class="action-button" id="workshop-depart" disabled>All aboard</button></div>
+    </section>
+
+    <div class="workshop-open-label" id="workshop-open-label">OLIVER CLOUDWORKS · OLIVER'S HOME ISLAND</div>
+
+    <footer class="bottom-dock">
+      <div class="controls-group">
+        <button class="control-button" id="power-button" aria-label="Hold to apply power">
+          <span class="control-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V9M12 13c-4.5.1-7-2.3-7-6 4.4 0 7 2.1 7 6ZM12 11c.4-4 3-6 7-6 0 4.3-2.3 6.7-7 6Z"/></svg></span>
+          <span class="control-copy"><strong>POWER</strong><small>Hold · W</small></span>
+        </button>
+      </div>
+      <div class="speed-hud">
+        <div class="speed-number"><span id="speed-value">0</span><small>KM/H</small></div>
+        <div class="speed-track"><div class="speed-fill" id="speed-fill"></div></div>
+        <div class="speed-note" id="speed-note">Smooth is swift</div>
+      </div>
+      <div class="controls-group" style="justify-content:flex-end">
+        <button class="control-button brake" id="brake-button" aria-label="Hold to brake">
+          <span class="control-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 18V9a7 7 0 0 1 14 0v9M4 18h16M8 11v3m4-4v4m4-3v3"/></svg></span>
+          <span class="control-copy"><strong>BRAKE</strong><small>Hold · S</small></span>
+        </button>
+      </div>
+      <div class="route-card" aria-label="Coastal Line route and leg comfort">
+        <div class="route-names"><span class="route-name" id="origin-label">Saltlight Terminus</span><span class="route-name" id="destination-label">Mango Tide</span></div>
+        <div class="route-line"><div class="route-fill" id="route-fill"></div><span class="tram-marker" id="tram-marker"></span></div>
+        <div class="comfort-row"><span class="comfort-label">Leg comfort</span><div class="comfort-track"><div class="comfort-fill" id="comfort-fill"></div></div><span class="comfort-value" id="comfort-value">100%</span></div>
+      </div>
+    </footer>
+    <div class="loading-note" id="load-note">Warming up the coastal line…</div>
+  </main>
+
+  <script type="module">
+    import * as THREE from 'three';
+
+    const $ = (id) => document.getElementById(id);
+    const canvas = $('world');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.65));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.18;
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x839295, 210, 610);
+    const camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 1600);
+    const clock = new THREE.Clock();
+    const UP = new THREE.Vector3(0, 1, 0);
+    const tmpObject = new THREE.Object3D();
+    const tmpMatrix = new THREE.Matrix4();
+
+    const mat = (color, roughness = .9, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness, flatShading: true, ...extra });
+    const colors = {
+      spruce: mat(0x315c4d), spruceLight: mat(0x47775c), wood: mat(0x9c6948), woodLight: mat(0xc48a58), cream: mat(0xf2dfb4), wall: mat(0xf1d9b7), coral: mat(0xc96b51), roof: mat(0xa94f3d), tile: mat(0xc86b4d), leaf: mat(0x66865a), leafLight: mat(0x89a96a), rock: mat(0x536c68), rockLight: mat(0x73847a), dark: mat(0x283d3d), glass: new THREE.MeshStandardMaterial({ color: 0xa9d3cb, roughness: .25, metalness: .08, transparent: true, opacity: .86, flatShading: true }), glow: new THREE.MeshStandardMaterial({ color: 0xffdb89, emissive: 0xffb84c, emissiveIntensity: 1.45, roughness: .35 }), water: new THREE.MeshStandardMaterial({ color: 0x347d8c, roughness: .32, metalness: .12 }), cloudA: new THREE.MeshStandardMaterial({ color: 0xd8e6d9, roughness: 1, transparent: true, opacity: .82, flatShading: true }), cloudB: new THREE.MeshStandardMaterial({ color: 0xbacfd0, roughness: 1, transparent: true, opacity: .68, flatShading: true }), rail: mat(0x514e46), railTop: mat(0x9a8b70), brass: new THREE.MeshStandardMaterial({ color: 0xc59151, metalness: .48, roughness: .38 })
+    };
+    colors.glass.side = THREE.DoubleSide;
+    const mesh = (geometry, material, parent = scene, position = null) => {
+      const item = new THREE.Mesh(geometry, material);
+      if (position) item.position.copy(position);
+      item.castShadow = true;
+      item.receiveShadow = true;
+      parent.add(item);
+      return item;
+    };
+    const box = (parent, w, h, d, material, x = 0, y = 0, z = 0) => mesh(new THREE.BoxGeometry(w, h, d), material, parent, new THREE.Vector3(x, y, z));
+    const line = (parent, points, radius, material) => {
+      const path = new THREE.CatmullRomCurve3(points.map(p => p.clone ? p.clone() : new THREE.Vector3(...p)));
+      return mesh(new THREE.TubeGeometry(path, Math.max(12, points.length * 8), radius, 5, false), material, parent);
+    };
+    const rngFactory = (seed) => () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+
+    const sky = mesh(new THREE.SphereGeometry(900, 28, 18), new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, vertexShader: `varying vec3 vDir; void main(){ vDir=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`, fragmentShader: `varying vec3 vDir; void main(){ float h=normalize(vDir).y; vec3 zenith=vec3(0.105,0.145,0.29); vec3 upper=vec3(0.27,0.21,0.39); vec3 horizon=vec3(0.94,0.59,0.39); vec3 dusk=vec3(0.27,0.40,0.52); float a=smoothstep(-0.08,0.68,h); float band=1.0-smoothstep(0.01,0.34,abs(h+0.03)); vec3 c=mix(dusk,upper,a); c=mix(c,zenith,smoothstep(0.54,0.96,h)); c=mix(c,horizon,band*0.9); gl_FragColor=vec4(c,1.0); }` }));
+    const hemi = new THREE.HemisphereLight(0xc8d7e2, 0x584c48, 2.0); scene.add(hemi);
+    const sun = new THREE.DirectionalLight(0xffd29b, 2.45); sun.position.set(-80, 130, 75); sun.castShadow = true; sun.shadow.mapSize.set(1536, 1536); sun.shadow.camera.left = -150; sun.shadow.camera.right = 150; sun.shadow.camera.top = 150; sun.shadow.camera.bottom = -150; sun.shadow.bias = -.0002; scene.add(sun);
+    const fillLight = new THREE.DirectionalLight(0x9ccbd2, .85); fillLight.position.set(70, 35, -90); scene.add(fillLight);
+
+    // Continuous catmull-rom coastal railway: a lifted climb, two broad turns, and a long cloud-sea bridge.
+    const routePoints = [
+      new THREE.Vector3(-34, 4, 28), new THREE.Vector3(-19, 6, 3), new THREE.Vector3(-12, 10, -30),
+      new THREE.Vector3(7, 18, -60), new THREE.Vector3(30, 20, -91), new THREE.Vector3(27, 14, -121),
+      new THREE.Vector3(5, 9, -151), new THREE.Vector3(-24, 10, -181), new THREE.Vector3(-16, 14, -211),
+      new THREE.Vector3(15, 13, -238), new THREE.Vector3(42, 11, -258)
+    ];
+    const railway = new THREE.CatmullRomCurve3(routePoints, false, 'centripetal', .45);
+    railway.arcLengthDivisions = 1200;
+    railway.updateArcLengths();
+    const railLength = railway.getLength();
+    const positionAt = (t) => railway.getPointAt(THREE.MathUtils.clamp(t, 0, 1));
+    const tangentAt = (t) => railway.getTangentAt(THREE.MathUtils.clamp(t, 0, 1)).normalize();
+    const sideAt = (t) => new THREE.Vector3().crossVectors(UP, tangentAt(t)).normalize();
+
+    // Deep azure water, with the cloud shelf suspended between the rails and the sea.
+    const ocean = mesh(new THREE.PlaneGeometry(2200, 2200), colors.water, scene, new THREE.Vector3(0, -24, -115));
+    ocean.rotation.x = -Math.PI / 2; ocean.receiveShadow = false;
+    const waterShimmer = new THREE.Group(); scene.add(waterShimmer);
+    const shimmerMat = new THREE.MeshBasicMaterial({ color: 0xb9d8cc, transparent: true, opacity: .18, side: THREE.DoubleSide });
+    for (let i = 0; i < 18; i++) {
+      const ring = new THREE.Mesh(new THREE.RingGeometry(2.5 + i * .12, 2.65 + i * .12, 48), shimmerMat);
+      ring.rotation.x = -Math.PI / 2; ring.position.set(-110 + (i * 31) % 280, -23.7 + (i % 3) * .04, -220 + (i * 47) % 250); ring.scale.set(1.3 + (i % 4) * .3, .55 + (i % 3) * .2, 1); waterShimmer.add(ring);
+    }
+
+    // Star scatter, a quiet moon, orbit lines, and low-poly cloud banks.
+    const starSeed = rngFactory(90713); const starPositions = [];
+    for (let i = 0; i < 520; i++) {
+      const az = starSeed() * Math.PI * 2; const elev = .12 + starSeed() * .85; const r = 690;
+      starPositions.push(Math.cos(az) * Math.cos(elev) * r, Math.sin(elev) * r, Math.sin(az) * Math.cos(elev) * r);
+    }
+    const starGeometry = new THREE.BufferGeometry(); starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starPositions, 3));
+    scene.add(new THREE.Points(starGeometry, new THREE.PointsMaterial({ color: 0xffebc4, size: 1.5, sizeAttenuation: false, transparent: true, opacity: .82 })));
+    const moon = mesh(new THREE.SphereGeometry(10, 10, 8), new THREE.MeshStandardMaterial({ color: 0xffdfab, emissive: 0x8b6247, emissiveIntensity: .45, roughness: 1, flatShading: true }), scene, new THREE.Vector3(-155, 154, -370));
+    moon.castShadow = false;
+    const orbitGroup = new THREE.Group(); orbitGroup.position.set(104, 51, -238); scene.add(orbitGroup);
+    for (let o = 0; o < 3; o++) {
+      const points = [];
+      for (let i = 0; i <= 100; i++) { const a = i / 100 * Math.PI * 2; points.push(new THREE.Vector3(Math.cos(a) * (20 + o * 8), Math.sin(a) * (7 + o * 3), Math.sin(a) * 12)); }
+      const orbit = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: o === 1 ? 0xe9c58d : 0xa9c2ba, transparent: true, opacity: .43 })); orbitGroup.add(orbit);
+    }
+    const cloudSeed = rngFactory(5179); const cloudGeom = new THREE.IcosahedronGeometry(1, 1);
+    const cloudInstances = [];
+    for (let c = 0; c < 2; c++) cloudInstances.push(new THREE.InstancedMesh(cloudGeom, c === 0 ? colors.cloudA : colors.cloudB, 210));
+    const cloudCounts = [0, 0];
+    for (let i = 0; i < 47; i++) {
+      const cx = -145 + cloudSeed() * 290; const cz = -279 + cloudSeed() * 335; const cy = -13 + cloudSeed() * 21;
+      const lobes = 3 + Math.floor(cloudSeed() * 4);
+      for (let j = 0; j < lobes; j++) {
+        const which = (i + j) % 2; const index = cloudCounts[which]++;
+        tmpObject.position.set(cx + (cloudSeed() - .5) * 17, cy + cloudSeed() * 3.1, cz + (cloudSeed() - .5) * 14);
+        const sx = 5 + cloudSeed() * 9; tmpObject.scale.set(sx, 2.8 + cloudSeed() * 3.5, 4 + cloudSeed() * 7); tmpObject.rotation.set(cloudSeed() * .3, cloudSeed() * 2, cloudSeed() * .2); tmpObject.updateMatrix(); cloudInstances[which].setMatrixAt(index, tmpObject.matrix);
+      }
+    }
+    cloudInstances.forEach((inst, i) => { inst.count = cloudCounts[i]; inst.instanceMatrix.needsUpdate = true; inst.castShadow = false; inst.receiveShadow = false; scene.add(inst); });
+
+    // Sleeper ties are instanced; raised bridge legs repeat at regular spans.
+    const sleeperCount = Math.ceil(railLength / 2.05) + 1;
+    const sleepers = new THREE.InstancedMesh(new THREE.BoxGeometry(3.15, .23, .52), colors.wood, sleeperCount);
+    sleepers.receiveShadow = true;
+    for (let i = 0; i < sleeperCount; i++) {
+      const t = Math.min(.9999, i * 2.05 / railLength); const p = positionAt(t); const tangent = tangentAt(t); const side = new THREE.Vector3().crossVectors(UP, tangent).normalize();
+      tmpObject.position.copy(p).addScaledVector(UP, -.23); tmpObject.rotation.set(0, 0, 0); tmpObject.scale.set(1, 1, 1);
+      tmpMatrix.makeBasis(side, UP, tangent); tmpObject.quaternion.setFromRotationMatrix(tmpMatrix); tmpObject.updateMatrix(); sleepers.setMatrixAt(i, tmpObject.matrix);
+    }
+    scene.add(sleepers);
+    for (const sign of [-1, 1]) {
+      const railPoints = [];
+      for (let i = 0; i <= 180; i++) { const t = i / 180; const p = positionAt(t); p.addScaledVector(sideAt(t), sign * 1.12); p.y += .03; railPoints.push(p); }
+      const railCurve = new THREE.CatmullRomCurve3(railPoints, false, 'centripetal');
+      mesh(new THREE.TubeGeometry(railCurve, 720, .105, 7, false), colors.rail, scene).castShadow = true;
+      const capPoints = railPoints.map(p => p.clone().add(new THREE.Vector3(0, .075, 0)));
+      mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(capPoints, false, 'centripetal'), 720, .029, 5, false), colors.railTop, scene).castShadow = false;
+    }
+    const bridgePillars = new THREE.InstancedMesh(new THREE.CylinderGeometry(.58, .9, 1, 7, 1), colors.rockLight, 50);
+    let pillarIndex = 0;
+    for (let t = .13; t < .96; t += .052) {
+      const p = positionAt(t); if (p.y < -16) continue;
+      const h = p.y + 18.5; tmpObject.position.set(p.x, -18.5 + h / 2, p.z); tmpObject.scale.set(1, h, 1); tmpObject.rotation.set(0, 0, 0); tmpObject.updateMatrix(); bridgePillars.setMatrixAt(pillarIndex++, tmpObject.matrix);
+      const deck = box(scene, 3.4, .2, .28, colors.woodLight, p.x, p.y - .55, p.z); deck.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1), tangentAt(t)); deck.castShadow = false;
+    }
+    bridgePillars.count = pillarIndex; bridgePillars.instanceMatrix.needsUpdate = true; scene.add(bridgePillars);
+
+    function addHouse(parent, x, z, scale = 1, wallColor = 0xf1d9b7, roofColor = 0xa94f3d, seed = 1) {
+      const g = new THREE.Group(); g.position.set(x, 3.0, z); g.scale.setScalar(scale); parent.add(g);
+      const wall = mat(wallColor); const roof = mat(roofColor); const doorMat = mat(0x715344); const winMat = new THREE.MeshStandardMaterial({ color: 0xffd88a, emissive: 0xffad4e, emissiveIntensity: 1.1, roughness: .45 });
+      box(g, 4.6, 3.2, 4.3, wall, 0, 1.65, 0);
+      const roofShape = new THREE.Shape(); roofShape.moveTo(-2.8, 0); roofShape.lineTo(0, 1.75); roofShape.lineTo(2.8, 0); roofShape.lineTo(-2.8, 0);
+      const roofGeo = new THREE.ExtrudeGeometry(roofShape, { depth: 4.8, bevelEnabled: false }); roofGeo.translate(0, 0, -2.4);
+      mesh(roofGeo, roof, g, new THREE.Vector3(0, 3.15, 0));
+      box(g, .8, 1.45, .12, doorMat, -.45, .72, 2.19);
+      box(g, .67, .74, .11, winMat, 1.08, 1.85, 2.2);
+      box(g, .56, .68, .1, winMat, -1.65, 1.82, -2.2);
+      box(g, .7, .72, .1, winMat, 2.34, 1.83, -.8);
+      box(g, .53, .9, .7, colors.wood, 1.45, 3.95, -1.15);
+      box(g, .12, .25, 4.1, colors.cream, 0, .48, 2.21);
+      return g;
+    }
+    function addTree(parent, x, z, scale = 1, seed = 2) {
+      const g = new THREE.Group(); g.position.set(x, 3, z); g.scale.setScalar(scale); parent.add(g);
+      mesh(new THREE.CylinderGeometry(.2, .33, 2.1, 6), colors.wood, g, new THREE.Vector3(0, 1, 0));
+      const greens = [colors.leaf, colors.leafLight, mat(0x587956)];
+      for (let i = 0; i < 3; i++) { const crown = mesh(new THREE.IcosahedronGeometry(1.2 - i * .15, 0), greens[(i + seed) % greens.length], g, new THREE.Vector3((i - 1) * .48, 2.05 + i * .55, (i % 2) * .25)); crown.scale.set(1.15, 1.05, 1); }
+      return g;
+    }
+    function addLamp(parent, x, z) {
+      const g = new THREE.Group(); g.position.set(x, 3, z); parent.add(g);
+      mesh(new THREE.CylinderGeometry(.055, .09, 3.1, 6), colors.dark, g, new THREE.Vector3(0, 1.55, 0));
+      mesh(new THREE.BoxGeometry(.52, .62, .52), colors.glow, g, new THREE.Vector3(0, 3.2, 0));
+      const cap = mesh(new THREE.ConeGeometry(.48, .33, 4), colors.wood, g, new THREE.Vector3(0, 3.66, 0)); cap.rotation.y = Math.PI / 4;
+      const glow = new THREE.PointLight(0xffc675, .65, 12); glow.position.set(0, 3, 0); g.add(glow);
+      return g;
+    }
+    function addLighthouse(parent) {
+      const g = new THREE.Group(); g.position.set(13, 3, -6); parent.add(g);
+      mesh(new THREE.CylinderGeometry(.68, .95, 9.2, 9), colors.cream, g, new THREE.Vector3(0, 4.6, 0));
+      for (let y = 2.4; y < 7; y += 2.2) box(g, .54, .12, .08, colors.coral, 0, y, .7);
+      mesh(new THREE.CylinderGeometry(.95, .95, .48, 9), colors.dark, g, new THREE.Vector3(0, 9.35, 0));
+      mesh(new THREE.ConeGeometry(.9, 1.18, 8), colors.roof, g, new THREE.Vector3(0, 10.15, 0));
+      const lantern = mesh(new THREE.BoxGeometry(1.2, 1.1, 1.2), colors.glow, g, new THREE.Vector3(0, 8.95, 0));
+      const beacon = new THREE.PointLight(0xffd58b, 2.2, 42); beacon.position.set(0, 9, 0); g.add(beacon);
+      const rail = mesh(new THREE.TorusGeometry(.9, .06, 6, 12), colors.brass, g, new THREE.Vector3(0, 9.5, 0)); rail.rotation.x = Math.PI / 2;
+      lantern.castShadow = false;
+    }
+    function addDock(parent) {
+      const g = new THREE.Group(); g.position.set(16, 2.8, 9); g.rotation.y = -.22; parent.add(g);
+      for (let i = 0; i < 7; i++) box(g, 1.35, .2, 8.7, i % 2 ? colors.wood : colors.woodLight, i * 1.12 - 3.36, 0, 3.6);
+      for (const x of [-3.8, 3.8]) for (const z of [0, 7.2]) mesh(new THREE.CylinderGeometry(.18, .22, 3.5, 6), colors.wood, g, new THREE.Vector3(x, -1.65, z));
+      for (const x of [-3.4, 3.4]) { box(g, .16, .6, 8.2, colors.woodLight, x, .34, 3.4); box(g, .16, .55, .16, colors.wood, x, .72, -.68); box(g, .16, .55, .16, colors.wood, x, .72, 7.48); }
+      const boat = new THREE.Group(); boat.position.set(0, -1.2, 8.5); g.add(boat);
+      const hull = mesh(new THREE.ConeGeometry(1.25, 4.1, 5), colors.coral, boat); hull.rotation.x = Math.PI / 2; hull.rotation.z = Math.PI;
+      box(boat, .12, .95, .12, colors.cream, 0, .3, 0);
+      return g;
+    }
+    function addTownsperson(parent, x, z, palette = 0) {
+      const colorset = [mat(0xb96950), mat(0x57816e), mat(0x647ba2), mat(0xd39b53), mat(0x855f7b)];
+      const g = new THREE.Group(); g.position.set(x, .65, z); parent.add(g);
+      const body = mesh(new THREE.CapsuleGeometry(.26, .58, 2, 5), colorset[palette % colorset.length], g, new THREE.Vector3(0, .52, 0));
+      body.scale.set(.88, 1, .7);
+      mesh(new THREE.SphereGeometry(.24, 7, 6), mat(0xe7b990), g, new THREE.Vector3(0, 1.13, .03));
+      mesh(new THREE.ConeGeometry(.27, .22, 6), colors.cream, g, new THREE.Vector3(0, 1.38, 0));
+      return g;
+    }
+    function makeStation(index, islandCenter) {
+      const p = positionAt(index === 0 ? 0 : 1); const tangent = tangentAt(index === 0 ? .001 : .999); const g = new THREE.Group();
+      g.position.copy(p); g.rotation.y = Math.atan2(tangent.x, tangent.z); scene.add(g);
+      const platform = box(g, 8.8, .5, 19, colors.woodLight, 0, -.35, 0); platform.receiveShadow = true;
+      box(g, 8.35, .09, 18.5, colors.cream, 0, -.06, 0);
+      const walk = new THREE.Group();
+      const delta = new THREE.Vector3(islandCenter.x - p.x, 0, islandCenter.z - p.z);
+      walk.position.set(p.x + delta.x / 2, p.y - .13, p.z + delta.z / 2);
+      walk.rotation.y = Math.atan2(delta.x, delta.z);
+      scene.add(walk);
+      const walkLength = delta.length();
+      box(walk, 3.6, .22, walkLength, colors.woodLight, 0, 0, 0);
+      for (const side of [-1, 1]) box(walk, .15, .55, walkLength, colors.wood, side * 1.72, .31, 0);
+      for (let i = 1; i < 10; i++) box(walk, 3.52, .055, .12, colors.wood, 0, .14, -walkLength / 2 + i * walkLength / 10);
+      for (let i = 1; i < 5; i++) mesh(new THREE.CylinderGeometry(.22,.3,1,6), colors.rock, walk, new THREE.Vector3(0,-.72,-walkLength / 2 + i * walkLength / 5));
+      for (let side of [-1,1]) {
+        box(g, .22, .18, 18.7, colors.wood, side * 4.25, .02, 0);
+        for (let i = 0; i < 5; i++) box(g, .45, .38, .42, colors.wood, side * 4.35, .18, -7.2 + i * 3.5);
+      }
+      const roofMat = index === 0 ? colors.roof : mat(0xb96048);
+      box(g, 4.8, .23, 7.3, roofMat, 3.6, 3.6, -1.6);
+      for (const x of [1.65,5.55]) for (const z of [-4.7,1.5]) mesh(new THREE.CylinderGeometry(.12,.16,3.45,6), colors.wood, g, new THREE.Vector3(x,1.77,z));
+      box(g, 3.4, 1.05, .18, colors.wall, 3.6, 1.2, -1.6);
+      box(g, 2.8, .36, .15, colors.spruce, 3.6, 2.35, -1.7);
+      const signText = index === 0 ? 'SALTlight' : 'MANGO tide';
+      box(g, 3.05, .9, .16, index === 0 ? colors.cream : mat(0xeedcb2), 3.6, 4.45, -1.6);
+      const signCanvas = document.createElement('canvas'); signCanvas.width = 512; signCanvas.height = 144;
+      const ctx = signCanvas.getContext('2d'); ctx.fillStyle = index === 0 ? '#355c4e' : '#89543e'; ctx.font = 'bold 48px Georgia'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(signText, 256, 73);
+      const tex = new THREE.CanvasTexture(signCanvas); tex.colorSpace = THREE.SRGBColorSpace;
+      const signFace = mesh(new THREE.PlaneGeometry(2.7,.7), new THREE.MeshBasicMaterial({ map: tex, transparent: true }), g, new THREE.Vector3(3.6,4.45,-1.48));
+      signFace.rotation.y = 0;
+      const lampA = addLamp(g, -3.55, -7.8); lampA.position.y -= .35;
+      const lampB = addLamp(g, -3.55, 7.7); lampB.position.y -= .35;
+      const queue = new THREE.Group(); queue.position.set(-2.4,.05,3.9); g.add(queue);
+      for (let i = 0; i < 5; i++) { const person = addTownsperson(queue, (i % 2) * .64, Math.floor(i / 2) * 1.05 - 1.1, i); person.rotation.y = -.15; }
+      box(g, 2.4, .22, .56, colors.wood, -3.05, .3, -2.7);
+      for (const x of [-4,-2.1]) mesh(new THREE.CylinderGeometry(.08,.09,.7,5),colors.dark,g,new THREE.Vector3(x,-.12,-2.7));
+      const island = new THREE.Group(); island.position.copy(islandCenter); scene.add(island);
+      mesh(new THREE.CylinderGeometry(18, 3.4, 18, 9, 1), colors.rock, island, new THREE.Vector3(0,-7.1,0));
+      const rockCap = mesh(new THREE.DodecahedronGeometry(19,1), colors.rockLight, island, new THREE.Vector3(0,-.9,0)); rockCap.scale.set(1.1,.3,.83); rockCap.rotation.y = index * .7;
+      const green = mesh(new THREE.CircleGeometry(14.8,11), mat(index ? 0x789067 : 0x82956e), island, new THREE.Vector3(0,2.45,0)); green.rotation.x = -Math.PI/2; green.receiveShadow = true;
+      const houseSpots = index === 0 ? [[-8,-7,1],[0,-10,.88],[7,-5,.82],[-8,5,.8],[5,8,.75]] : [[-8,-8,.9],[0,-10,.83],[8,-5,.86],[-8,5,.77],[5,8,.78]];
+      houseSpots.forEach((a,i) => addHouse(island,a[0],a[1],a[2], i%2 ? 0xf1dfbd : 0xe8d1af, i%2 ? 0xb96248 : 0xa94f3d, i));
+      for (const [x,z,s] of [[-13,1,.9],[11,4,.85],[-3,12,.8],[12,-11,.72]]) addTree(island,x,z,s);
+      addLamp(island, -13, -8);
+      if (index === 0) addLighthouse(island); else addDock(island);
+    }
+    const startIslandCenter = positionAt(0).clone().addScaledVector(sideAt(.001), 26).add(new THREE.Vector3(0,-3,0));
+    const endIslandCenter = positionAt(1).clone().addScaledVector(sideAt(.999), -26).add(new THREE.Vector3(0,-3,0));
+    makeStation(0, startIslandCenter);
+    makeStation(1, endIslandCenter);
+
+    // A few small inhabited rocklets float behind the route to make the horizon feel lived in.
+    const farSeed = rngFactory(1251);
+    for (let i = 0; i < 8; i++) {
+      const g = new THREE.Group(); g.position.set(-185 + farSeed()*370, 27 + farSeed()*34, -300 - farSeed()*200); scene.add(g);
+      const rock = mesh(new THREE.DodecahedronGeometry(9 + farSeed()*7, 0), colors.rock, g); rock.scale.y = .35;
+      mesh(new THREE.CylinderGeometry(7,1.2,9,7), colors.rockLight, g, new THREE.Vector3(0,-6,0));
+      if (i % 2 === 0) addHouse(g, -1, 0, .52, 0xf0d9b3, 0xaa5744, i);
+      if (i % 3 === 0) addTree(g, 6,2,.65,i);
+    }
+
+    function createWorkshop() {
+      const at = startIslandCenter.clone().add(new THREE.Vector3(16,3.2,-4));
+      const group = new THREE.Group(); group.position.copy(at); scene.add(group);
+      const deck = box(group, 17, .48, 16, colors.wood, 0, 0, 0); deck.receiveShadow = true;
+      box(group, 16.4, .12, 15.4, colors.cream, 0, .3, 0);
+      // Open-front shed: the roof and warm work lights frame the tram instead of hiding it.
+      box(group, 10.8, 4.8, .44, colors.wall, 0, 2.85, -5.8);
+      box(group, .44, 5.6, 10.6, colors.wall, -5.2, 3.1, -.45);
+      box(group, .44, 5.6, 10.6, colors.wall, 5.2, 3.1, -.45);
+      box(group, 11.8, .4, 12, colors.wood, 0, 5.8, -.45);
+      const roofShape = new THREE.Shape(); roofShape.moveTo(-6.5,0); roofShape.lineTo(0,2.45); roofShape.lineTo(6.5,0); roofShape.lineTo(-6.5,0);
+      const roofGeo = new THREE.ExtrudeGeometry(roofShape,{depth:12.8,bevelEnabled:false}); roofGeo.translate(0,0,-6.4);
+      mesh(roofGeo, colors.roof, group, new THREE.Vector3(0,5.9,-.45));
+      box(group, 3.4, .78, .16, colors.spruce, 0, 4.2, 6.08);
+      const placard = document.createElement('canvas'); placard.width=512; placard.height=128; const pc=placard.getContext('2d');
+      pc.fillStyle='#315b4b'; pc.fillRect(0,0,512,128); pc.fillStyle='#fff3d7'; pc.font='bold 42px Georgia'; pc.textAlign='center'; pc.textBaseline='middle'; pc.fillText('OLIVER CLOUDWORKS',256,64);
+      const plaqueTex = new THREE.CanvasTexture(placard); plaqueTex.colorSpace=THREE.SRGBColorSpace;
+      mesh(new THREE.PlaneGeometry(3.1,.58),new THREE.MeshBasicMaterial({map:plaqueTex}),group,new THREE.Vector3(0,4.2,6.17));
+      for (const x of [-4.6,4.6]) {
+        mesh(new THREE.BoxGeometry(.55,.52,.55),colors.glow,group,new THREE.Vector3(x,5.05,5.35));
+        const light = new THREE.PointLight(0xffc876,1.35,18); light.position.set(x,4.8,4.8); group.add(light);
+        box(group,.16,2.6,.16,colors.wood,x,4.5,-5.55);
+      }
+      for(let i=0;i<5;i++) {
+        box(group,.82,.18,.95,i%2?colors.woodLight:colors.spruce, -4.1+i*2.05,.57,-3.3);
+        box(group,.12,.72,.12,colors.dark,-4.35+i*2.05,.45,-3.3);
+      }
+      const gear = mesh(new THREE.TorusGeometry(1,.16,6,14),colors.brass,group,new THREE.Vector3(-4.2,2.3,-5.4)); gear.rotation.y=Math.PI/2;
+      const gear2 = mesh(new THREE.TorusGeometry(.65,.12,6,12),colors.woodLight,group,new THREE.Vector3(-2.8,2.3,-5.4)); gear2.rotation.y=Math.PI/2;
+      return { group, spot: at.clone().add(new THREE.Vector3(0,.6,2.3)), focus: at.clone().add(new THREE.Vector3(0,2.4,-.6)) };
+    }
+    const workshop = createWorkshop();
+
+    function createTram() {
+      const root = new THREE.Group(); scene.add(root);
+      const sway = new THREE.Group(); root.add(sway);
+      box(sway, 3.05, .42, 6.35, colors.wood, 0, .28, 0);
+      box(sway, 2.7, .22, 5.95, colors.woodLight, 0, .55, 0);
+      // Rounded side silhouette, extruded into a deep green vintage carriage.
+      const bodyShape = new THREE.Shape();
+      bodyShape.moveTo(-1.22,.52); bodyShape.lineTo(1.22,.52); bodyShape.lineTo(1.34,1.24); bodyShape.quadraticCurveTo(1.42,1.48,1.32,1.72); bodyShape.lineTo(1.12,2.44); bodyShape.quadraticCurveTo(.96,2.74,.66,2.78); bodyShape.lineTo(-.66,2.78); bodyShape.quadraticCurveTo(-.96,2.74,-1.12,2.44); bodyShape.lineTo(-1.32,1.72); bodyShape.quadraticCurveTo(-1.42,1.48,-1.34,1.24); bodyShape.lineTo(-1.22,.52);
+      const bodyGeo = new THREE.ExtrudeGeometry(bodyShape,{depth:5.65,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:.09,bevelThickness:.1}); bodyGeo.translate(0,0,-2.825);
+      mesh(bodyGeo,colors.spruce,sway);
+      box(sway,2.68,.16,5.55,colors.spruceLight,0,2.71,0);
+      const wheelMat=mat(0x433c36); const hubMat=mat(0xc18d51);
+      for(const z of [-2.1,2.1]) for(const x of [-1.33,1.33]) {
+        const wheel=mesh(new THREE.CylinderGeometry(.39,.39,.24,9),wheelMat,sway,new THREE.Vector3(x,.34,z)); wheel.rotation.z=Math.PI/2;
+        const hub=mesh(new THREE.CylinderGeometry(.16,.16,.255,8),hubMat,sway,new THREE.Vector3(x*1.01,.34,z)); hub.rotation.z=Math.PI/2;
+      }
+      const arch=new THREE.Shape(); arch.moveTo(-.35,0); arch.lineTo(.35,0); arch.lineTo(.35,.66); arch.quadraticCurveTo(.35,.96,0,.99); arch.quadraticCurveTo(-.35,.96,-.35,.66); arch.lineTo(-.35,0);
+      const glassGeo=new THREE.ExtrudeGeometry(arch,{depth:.07,bevelEnabled:false}); glassGeo.translate(0,0,-.035);
+      const passengerColors=[mat(0xeac28d),mat(0xd78869),mat(0x8ea5a0),mat(0xd7d5bd),mat(0xb98b9b)];
+      const passengerPivots=[];
+      for(const side of [-1,1]) {
+        for(let i=0;i<6;i++) {
+          const z=-2.25+i*.9;
+          const win=mesh(glassGeo,colors.glass,sway,new THREE.Vector3(side*1.315,1.28,z)); win.rotation.y=side*Math.PI/2;
+          const frameMat=colors.woodLight;
+          box(sway,.07,.08,.79,frameMat,side*1.35,1.25,z);
+          box(sway,.07,.065,.79,frameMat,side*1.35,2.22,z);
+          box(sway,.75,.18,.34,colors.wood,side*.65,.98,z);
+          const pivot=new THREE.Group(); pivot.position.set(side*.64,1.12,z); sway.add(pivot); passengerPivots.push(pivot);
+          mesh(new THREE.CylinderGeometry(.18,.2,.44,6),passengerColors[i%passengerColors.length],pivot,new THREE.Vector3(0,.16,0));
+          mesh(new THREE.SphereGeometry(.17,7,6),mat(0xe5b792),pivot,new THREE.Vector3(0,.49,.02));
+        }
+      }
+      // Ends have broad, arched front windows and a brass route badge.
+      for(const z of [-2.84,2.84]) {
+        const endZ=z+Math.sign(z)*.2;
+        mesh(glassGeo,colors.glass,sway,new THREE.Vector3(0,1.32,endZ));
+        box(sway,1.65,.1,.11,colors.woodLight,0,1.26,endZ);
+        box(sway,1.65,.09,.11,colors.woodLight,0,2.3,endZ);
+      }
+      box(sway,1.05,.37,.11,colors.cream,0,2.41,2.91);
+      const badgeCanvas=document.createElement('canvas'); badgeCanvas.width=256;badgeCanvas.height=96;const bc=badgeCanvas.getContext('2d');bc.fillStyle='#fff0cf';bc.fillRect(0,0,256,96);bc.fillStyle='#315b4b';bc.font='bold 31px Georgia';bc.textAlign='center';bc.textBaseline='middle';bc.fillText('CLOUD  04',128,49);
+      const badgeTex=new THREE.CanvasTexture(badgeCanvas);badgeTex.colorSpace=THREE.SRGBColorSpace;
+      const badge=mesh(new THREE.PlaneGeometry(.92,.34),new THREE.MeshBasicMaterial({map:badgeTex}),sway,new THREE.Vector3(0,2.42,2.972));
+      // Split sliding doors; the gap visibly opens during the station dwell.
+      const doors=[];
+      for(const side of [-1,1]) for(const part of [-1,1]) {
+        const door=box(sway,.09,1.38,.32,colors.spruceLight,side*1.37,1.35,part*.18); doors.push({door,side,part});
+        box(sway,.08,.55,.25,colors.glass,side*1.425,1.56,part*.18);
+      }
+      const awningGroup=new THREE.Group(); sway.add(awningGroup);
+      for(const side of [-1,1]) {
+        box(awningGroup,.27,.2,5.75,colors.spruceLight,side*1.35,2.57,0);
+        for(let i=0;i<6;i++) box(awningGroup,.08,.18,.36,i%2?colors.cream:colors.spruce,side*1.5,2.48,-2.4+i*.96);
+      }
+      const hearthGroup=new THREE.Group(); sway.add(hearthGroup); hearthGroup.visible=false;
+      for(const side of [-1,1]) {
+        const vinePts=[]; for(let i=0;i<=12;i++){const z=-2.7+i*.45;vinePts.push(new THREE.Vector3(side*1.52,2.42+Math.sin(i*.83)*.15,z));}
+        line(hearthGroup,vinePts,.045,colors.leaf);
+        for(let i=0;i<12;i++) {
+          const leaf=mesh(new THREE.IcosahedronGeometry(.17,0),i%2?colors.leaf:colors.leafLight,hearthGroup,new THREE.Vector3(side*1.53,2.44+Math.sin(i*.83)*.15,-2.48+i*.45));
+          leaf.scale.set(.75,1.18,.55); leaf.rotation.z=(i%2?-.55:.55);
+        }
+      }
+      const companionGroup=new THREE.Group(); sway.add(companionGroup); companionGroup.visible=false;
+      for(const side of [-1,1]) {
+        box(companionGroup,.13,.16,5.55,colors.brass,side*.88,3.13,0);
+        for(const z of [-2.6,2.6]) mesh(new THREE.CylinderGeometry(.07,.07,1.05,6),colors.brass,companionGroup,new THREE.Vector3(side*.88,2.85,z));
+        mesh(new THREE.BoxGeometry(.4,.55,.4),colors.glow,companionGroup,new THREE.Vector3(side*1.03,2.86,-2.08));
+        const glow=new THREE.PointLight(0xffcc76,.55,8);glow.position.set(side*1.2,2.8,-2);companionGroup.add(glow);
+      }
+      for(let i=0;i<4;i++) {
+        const bag=mesh(new THREE.BoxGeometry(.82,.49,.72),i%2?colors.coral:colors.woodLight,companionGroup,new THREE.Vector3(-.42+i*.28,3.26,-1.65+i*1.08));
+        bag.rotation.y=(i%2?-.15:.12);
+      }
+      box(companionGroup,2.05,.1,5.35,colors.wood,0,3.14,0);
+      root.add(sway);
+      return { root, sway, doors, passengerPivots, hearthGroup, companionGroup };
+    }
+    const tram=createTram();
+    const state={ mode:'moving', progress:.008, direction:1, speed:0, comfort:100, passengers:12, coins:125, streak:0, roughEvents:0, streakBroken:false, trip:0, currentStation:'', doorsOpen:false, dwellTimer:0, exchangeDone:false, power:false, brake:false, powerPulse:0, brakePulse:0, viewInput:0, viewOffset:0, viewTarget:0, elapsed:0, workshopPart:'', workshopTimer:0, workshopProgress:0, hearthInstalled:false, companionInstalled:false, smoothArrival:false, toastTimer:0, subtitleTimer:0, cameraReady:false };
+    tram.root.position.copy(positionAt(state.progress));
+
+    function setToast(text, warning=false, duration=3000) {
+      const toast=$('toast'); toast.textContent=text; toast.classList.toggle('warning',warning); toast.classList.add('show'); state.toastTimer=duration;
+    }
+    function setSubtitle(text, duration=4600) { $('subtitle')?.remove(); const el=document.createElement('div'); el.className='subtitle';el.id='subtitle';el.textContent=text;$('game').appendChild(el);state.subtitleTimer=duration; }
+    function showPhase(open) { $('phase-panel').classList.toggle('open',open); }
+    function showWorkshop(open) { $('workshop-panel').classList.toggle('open',open); $('workshop-open-label').classList.toggle('show',open); }
+    function updateHUD() {
+      const moving=state.mode==='moving'; const forward=state.direction>0;
+      const origin=forward?'Saltlight Terminus':'Mango Tide'; const destination=forward?'Mango Tide':'Saltlight Terminus';
+      $('destination').textContent=moving?destination:(state.currentStation||destination);
+      $('station-caption').textContent=moving?`${origin} → island stop`:state.mode==='workshop'?'Oliver’s home island · Saltlight':`${state.currentStation} · island platform`;
+      $('leg-label').textContent=moving?(forward?'OUTBOUND • COASTAL LINE':'RETURN • COASTAL LINE'):state.mode==='workshop'?'WORKSHOP • SALTLIGHT':'ISLAND STOP • COASTAL LINE';
+      $('passengers').textContent=`${state.passengers} / 16`; $('coins').textContent=state.coins; $('streak').textContent=state.streak;
+      $('speed-value').textContent=Math.round(state.speed*7.2); $('speed-fill').style.width=`${Math.min(100,state.speed/16*100)}%`;
+      $('speed-note').textContent=state.speed>13?'Mind the crosswind':state.speed>8?'Easy through the bend':'Smooth is swift';
+      $('origin-label').textContent=forward?'Saltlight Terminus':'Mango Tide'; $('destination-label').textContent=forward?'Mango Tide':'Saltlight Terminus';
+      const visualProgress=state.progress; $('route-fill').style.width=`${visualProgress*100}%`; $('tram-marker').style.left=`${visualProgress*100}%`;
+      $('comfort-fill').style.width=`${state.comfort}%`; $('comfort-value').textContent=`${Math.round(state.comfort)}%`;
+      $('comfort-fill').style.background=state.comfort>72?'#6e9964':state.comfort>42?'#dfa850':'#d87858';
+      const isCross=state.mode==='moving'&&((state.progress>.31&&state.progress<.46)||(state.progress>.76&&state.progress<.82));
+      $('weather-name').textContent=isCross?'Crosswind':'Steady'; $('weather-detail').textContent=isCross?'sea gusts across the bridge':'clear rail, easy pace'; $('conditions').classList.toggle('weather-cross',isCross);
+      $('power-button').classList.toggle('is-held',state.power); $('brake-button').classList.toggle('is-held',state.brake);
+      $('power-button').disabled=!moving; $('brake-button').disabled=!moving;
+      $('phase-detail').style.display=state.mode==='arrival'||state.mode==='doors'||state.mode==='stopped'?'flex':'none';
+    }
+    function buildPhaseButtons(buttons) {
+      const target=$('phase-buttons'); target.replaceChildren();
+      for(const cfg of buttons) {
+        const b=document.createElement('button');b.type='button';b.className=`action-button${cfg.secondary?' secondary':''}`;b.textContent=cfg.label;b.disabled=!!cfg.disabled;
+        b.addEventListener('click',cfg.action);target.appendChild(b);
+      }
+    }
+    function showArrival() {
+      const at=state.currentStation; $('phase-tag').textContent=state.mode==='arrival'?'Arrival • Island platform':state.mode==='doors'?'Platform exchange':'Island stop • Coastal Line';
+      $('phase-title').textContent=state.mode==='doors'?'Doors opening':at;
+      $('phase-copy').textContent=state.mode==='doors'?'Please wait… the platform is busy and everyone is taking their time.':state.mode==='stopped'?'The platform lanterns are glowing. The townsfolk are ready for the next leg.':'The tram eases onto the platform. Open the doors when you are ready.';
+      $('arrival-comfort').textContent=`${Math.round(state.comfort)}%`;
+      $('arrival-bonus').textContent=state.smoothArrival?'• +75 smooth arrival':'• keep your balance for a tip';
+      if(state.mode==='arrival') buildPhaseButtons([{label:'Open the doors',action:openDoors},{label:'Keep the view',secondary:true,action:()=>{showPhase(false);}}]);
+      else if(state.mode==='doors') buildPhaseButtons([{label:'Please wait…',disabled:true,action:()=>{}}]);
+      else {
+        const isSalt=at==='Saltlight Terminus';
+        buildPhaseButtons(isSalt?[
+          {label:'Visit Cloudworks',action:enterWorkshop},
+          {label:'Depart for Mango Tide',secondary:true,action:()=>depart(1)}
+        ]:[{label:'Return to Saltlight',action:()=>depart(-1)}]);
+      }
+      showPhase(true); updateHUD();
+    }
+    function arrive() {
+      state.mode='arrival'; state.speed=0; state.currentStation=state.direction>0?'Mango Tide':'Saltlight Terminus'; state.doorsOpen=false; state.exchangeDone=false; state.dwellTimer=0; state.roughEvents=0; state.streakBroken=false;
+      state.smoothArrival=state.comfort>=78;
+      if(state.smoothArrival) { state.coins+=75; state.streak++; setToast('Smooth arrival · +75 tide tokens',false,4300); }
+      else { state.streak=0; setToast(`Arrived with ${Math.round(state.comfort)}% leg comfort · take the next bend gently`,true,4300); }
+      setSubtitle(state.currentStation==='Mango Tide'?'Mango Tide, just beyond the lanterns.':'Saltlight Terminus, home above the clouds.');
+      showArrival();
+    }
+    function openDoors() {
+      if(state.mode!=='arrival') return;
+      state.mode='doors';state.doorsOpen=true;state.dwellTimer=0;setSubtitle(`Doors opening — ${state.currentStation}`,4200);showArrival();
+    }
+    function completeExchange() {
+      const leaving=Math.min(state.passengers,5); const boarding=Math.min(16-(state.passengers-leaving),state.currentStation==='Mango Tide'?3:2);
+      state.passengers=Math.max(0,state.passengers-leaving)+boarding; state.doorsOpen=false;state.exchangeDone=true;state.mode='stopped';
+      setSubtitle(`${leaving} stepped off · ${boarding} aboard`,3300);showArrival();
+    }
+    function depart(direction) {
+      state.direction=direction;state.progress=.008;state.speed=0;state.comfort=100;state.streakBroken=false;state.roughEvents=0;state.currentStation='';state.doorsOpen=false;state.exchangeDone=false;state.mode='moving';state.trip++;state.viewTarget=0;
+      showPhase(false);showWorkshop(false);setSubtitle(direction>0?'All aboard. Next stop: the Coastal Line.':'All aboard. Saltlight is waiting beyond the clouds.',4800);updateHUD();
+    }
+    function enterWorkshop() {
+      state.mode='workshop';state.speed=0;state.power=false;state.brake=false;state.workshopProgress=0;state.workshopPart='';
+      tram.root.position.copy(workshop.spot);tram.root.rotation.set(0,-.12,0);tram.hearthGroup.visible=state.hearthInstalled;tram.companionGroup.visible=state.companionInstalled;
+      $('workshop-copy').textContent='A little care for the old tram. Choose an upgrade; Oliver will take it from there.';
+      $('work-stage').textContent='Sit back and watch the workshop.';$('work-percent').textContent='Ready';$('work-fill').style.width='0%';$('work-progress').setAttribute('aria-valuenow','0');
+      showPhase(false);showWorkshop(true);setSubtitle('Oliver Cloudworks · Oliver’s home island',4200);refreshParts();updateHUD();
+    }
+    function refreshParts() {
+      const leaves=$('install-leaves'), companion=$('install-companion');
+      $('leaves-status').textContent=state.hearthInstalled?'Settled into the awning':'Lifting the old part';
+      $('companion-status').textContent=state.companionInstalled?'Rack, bags & lanterns fitted':'Preparing the tram';
+      leaves.textContent=state.hearthInstalled?'Fitted':state.workshopPart==='hearth'?'Working…':'Fit leaves';
+      companion.textContent=state.companionInstalled?'Fitted':state.workshopPart==='companion'?'Working…':'Prepare';
+      leaves.disabled=state.hearthInstalled||!!state.workshopPart;
+      companion.disabled=state.companionInstalled||!!state.workshopPart||!state.hearthInstalled;
+      $('workshop-depart').disabled=!(state.hearthInstalled&&state.companionInstalled)&&!state.workshopComplete;
+      $('workshop-footnote').textContent=state.hearthInstalled&&state.companionInstalled?'Your tram is ready for the Coastal Line.':'Two small upgrades, a brighter ride.';
+    }
+    function startPart(part) {
+      if(state.workshopPart) return;
+      if(part==='companion'&&!state.hearthInstalled) return;
+      state.workshopPart=part;state.workshopTimer=0;state.workshopProgress=0;
+      const text=part==='hearth'?'Lifting the old part':'Preparing the tram';$('work-stage').textContent=text;$('work-percent').textContent='0%';
+      $('workshop-copy').textContent=part==='hearth'?'Oliver lifts the old awning trim and works a fresh vine through the brass hooks.':'Oliver balances a luggage rack, two travel lamps and a little extra room for the ride.';
+      setSubtitle(text,3000);refreshParts();
+    }
+    $('install-leaves').addEventListener('click',()=>startPart('hearth'));
+    $('install-companion').addEventListener('click',()=>startPart('companion'));
+    $('workshop-depart').addEventListener('click',()=>{state.workshopComplete=true;depart(1);});
+
+    function roughnessCheck(accel, curveLoad, crosswind, dt) {
+      let loss=0;
+      if(accel>2.8) { loss+=(accel-2.8)*dt*4.2; if(accel>4.4) state.roughEvents++; }
+      if(accel< -3.1) { loss+=(-3.1-accel)*dt*4.7; if(accel< -5.1) state.roughEvents++; }
+      if(curveLoad>4.8) { loss+=(curveLoad-4.8)*dt*1.5; if(curveLoad>8) state.roughEvents++; }
+      if(crosswind&&state.speed>6.5) loss+=(state.speed-6.5)*dt*.048;
+      if(state.speed<4.5&&!state.power&&!state.brake) state.comfort=Math.min(100,state.comfort+dt*1.4);
+      state.comfort=THREE.MathUtils.clamp(state.comfort-loss,0,100);
+      if(!state.streakBroken&&(state.comfort<42||state.roughEvents>3)) {
+        state.streakBroken=true;state.streak=0;setToast('Streak broken. Find your balance to rebuild your tips.',true,4800);
+      }
+    }
+    function tickMovement(dt) {
+      const moving=state.mode==='moving';
+      if(moving) {
+        const oldSpeed=state.speed; let accel=0;
+        const power=state.power||state.powerPulse>0;const brake=state.brake||state.brakePulse>0;
+        state.powerPulse=Math.max(0,state.powerPulse-dt);state.brakePulse=Math.max(0,state.brakePulse-dt);
+        if(power&&state.speed<16) state.speed=Math.min(16,state.speed+2.25*dt);
+        else if(brake&&state.speed>0) state.speed=Math.max(0,state.speed-5.3*dt);
+        else state.speed=Math.max(0,state.speed-.075*dt);
+        accel=(state.speed-oldSpeed)/Math.max(dt,.001);
+        const t=state.direction>0?state.progress:1-state.progress; const ta=THREE.MathUtils.clamp(t-.009,.001,.999); const tb=THREE.MathUtils.clamp(t+.009,.001,.999);
+        const before=tangentAt(ta);const after=tangentAt(tb);const angle=Math.acos(THREE.MathUtils.clamp(before.dot(after),-1,1));const curvature=angle/Math.max(.1,(tb-ta)*railLength);
+        const curveLoad=state.speed*state.speed*curvature;
+        const crosswind=(state.progress>.31&&state.progress<.46)||(state.progress>.76&&state.progress<.82);
+        roughnessCheck(accel,curveLoad,crosswind,dt);
+        state.progress+=state.speed*dt/railLength;
+        if(state.progress>=.999) {state.progress=.999;arrive();}
+      } else if(state.mode==='doors') {
+        state.dwellTimer+=dt;
+        if(state.dwellTimer>2.8&&!state.exchangeDone) completeExchange();
+      } else if(state.mode==='workshop'&&state.workshopPart) {
+        state.workshopTimer+=dt;state.workshopProgress=Math.min(1,state.workshopTimer/3.2);
+        $('work-fill').style.width=`${state.workshopProgress*100}%`;$('work-percent').textContent=`${Math.round(state.workshopProgress*100)}%`;$('work-progress').setAttribute('aria-valuenow',`${Math.round(state.workshopProgress*100)}`);
+        if(state.workshopProgress>=1) {
+          if(state.workshopPart==='hearth'){state.hearthInstalled=true;tram.hearthGroup.visible=true;}
+          else {state.companionInstalled=true;tram.companionGroup.visible=true;}
+          const finished=state.workshopPart;state.workshopPart='';state.workshopProgress=0;state.workshopComplete=state.hearthInstalled&&state.companionInstalled;
+          $('work-stage').textContent=finished==='hearth'?'A fresh green awning, rooted and ready.':'The luggage is snug. The lanterns are lit.';$('work-percent').textContent='Done';$('workshop-copy').textContent=finished==='hearth'?'A row of tiny leaves stirs along the carriage roof.':'A rack for the long way round, and lanterns for the blue hour.';
+          setSubtitle(finished==='hearth'?'Hearth leaves, settled in.':'Little Companion, ready to roll.',3400);refreshParts();
+        }
+      }
+      if(state.viewInput!==0) state.viewTarget=THREE.MathUtils.clamp(state.viewTarget+state.viewInput*dt*.7,-.48,.48);
+      state.viewOffset=THREE.MathUtils.damp(state.viewOffset,state.viewTarget,4.2,dt);
+      for(const entry of tram.doors) {
+        const shift=state.doorsOpen?entry.part*.26:0;
+        entry.door.position.z=entry.part*.18+shift;
+      }
+      const t=state.direction>0?state.progress:1-state.progress;
+      const point=state.mode==='workshop'?workshop.spot:positionAt(t);
+      const tangent=state.mode==='workshop'?new THREE.Vector3(0,0,1):tangentAt(t).multiplyScalar(state.direction);
+      if(state.mode==='moving'||state.mode==='arrival'||state.mode==='doors'||state.mode==='stopped') {
+        tram.root.position.copy(point);tram.root.position.y+=Math.sin(state.elapsed*8)*Math.min(.07,state.speed*.004);
+        const yaw=Math.atan2(tangent.x,tangent.z);const pitch=-Math.atan2(tangent.y,Math.hypot(tangent.x,tangent.z));
+        let turn=0;
+        if(moving) {const prev=tangentAt(THREE.MathUtils.clamp(t-.008,.001,.999)).multiplyScalar(state.direction);const next=tangentAt(THREE.MathUtils.clamp(t+.008,.001,.999)).multiplyScalar(state.direction);turn=prev.z*next.x-prev.x*next.z;}
+        const bank=THREE.MathUtils.clamp(-turn*state.speed*.17,-.2,.2);
+        tram.root.rotation.set(pitch,yaw,bank,'YXZ');
+      } else if(state.mode==='workshop') {
+        tram.root.rotation.y=-.12;tram.root.rotation.x=0;tram.root.rotation.z=Math.sin(state.elapsed*1.4)*.012;
+      }
+      const bob=Math.sin(state.elapsed*7.6)*Math.min(.045,state.speed*.0025);tram.sway.rotation.z=state.mode==='moving'?THREE.MathUtils.clamp(bob+Math.sin(state.elapsed*2.1)*.012,-.08,.08):Math.sin(state.elapsed*1.1)*.006;
+      for(const p of tram.passengerPivots) p.rotation.z=Math.sin(state.elapsed*1.6+p.position.z*1.4)*.035;
+    }
+    function updateCamera(dt) {
+      const movingPose=state.mode!=='workshop';const t=state.direction>0?state.progress:1-state.progress;
+      const target=movingPose?positionAt(t):workshop.focus.clone();
+      if(movingPose) {
+        const forward=tangentAt(t).multiplyScalar(state.direction);const right=new THREE.Vector3().crossVectors(UP,forward).normalize();
+        const desired=target.clone().addScaledVector(forward,-22).addScaledVector(UP,9.5).addScaledVector(right,state.viewOffset*15);
+        if(!state.cameraReady){camera.position.copy(desired);state.cameraReady=true;}
+        camera.position.lerp(desired,1-Math.exp(-2.5*dt));
+        const look=target.clone().addScaledVector(forward,2.4).addScaledVector(UP,1.4);camera.lookAt(look);
+      } else {
+        const desired=workshop.focus.clone().add(new THREE.Vector3(18,22,22));
+        if(!state.cameraReady){camera.position.copy(desired);state.cameraReady=true;}
+        camera.position.lerp(desired,1-Math.exp(-1.8*dt));camera.lookAt(workshop.focus);
+      }
+    }
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt=Math.min(.05,clock.getDelta());state.elapsed+=dt;
+      tickMovement(dt);updateCamera(dt);
+      orbitGroup.rotation.y=Math.sin(state.elapsed*.12)*.22;
+      waterShimmer.children.forEach((ring,i)=>{ring.material.opacity=.11+.08*Math.sin(state.elapsed*.5+i*.7);});
+      if(state.toastTimer>0){state.toastTimer-=dt*1000;if(state.toastTimer<=0)$('toast').classList.remove('show');}
+      if(state.subtitleTimer>0){state.subtitleTimer-=dt*1000;if(state.subtitleTimer<=0)$('subtitle')?.remove();}
+      if(state.elapsed%0.11<dt) updateHUD();
+      renderer.render(scene,camera);
+    }
+
+    const pointerState={power:false,brake:false};
+    function bindHold(buttonId,kind) {
+      const button=$(buttonId);
+      const down=(event)=>{event.preventDefault();if(state.mode!=='moving')return;pointerState[kind]=true;state[kind]=true;button.classList.add('is-held');try{button.setPointerCapture(event.pointerId);}catch{}};
+      const up=(event)=>{if(!pointerState[kind])return;pointerState[kind]=false;state[kind]=false;button.classList.remove('is-held');};
+      button.addEventListener('pointerdown',down);button.addEventListener('pointerup',up);button.addEventListener('pointercancel',up);button.addEventListener('lostpointercapture',up);button.addEventListener('pointerleave',(e)=>{if(e.buttons===0)up(e);});
+      button.addEventListener('click',()=>{if(state.mode==='moving') state[kind==='power'?'powerPulse':'brakePulse']=.42;});
+      window.addEventListener('blur',()=>{pointerState[kind]=false;state[kind]=false;button.classList.remove('is-held');});
+    }
+    bindHold('power-button','power');bindHold('brake-button','brake');
+    function bindViewButton(id,dir) {
+      const b=$(id);b.addEventListener('pointerdown',(e)=>{e.preventDefault();state.viewInput=dir;try{b.setPointerCapture(e.pointerId);}catch{}});
+      const stop=()=>{if(state.viewInput===dir)state.viewInput=0;};b.addEventListener('pointerup',stop);b.addEventListener('pointercancel',stop);b.addEventListener('lostpointercapture',stop);
+      b.addEventListener('click',()=>{state.viewTarget=THREE.MathUtils.clamp(state.viewTarget+dir*.12,-.48,.48);});
+    }
+    bindViewButton('view-left',-1);bindViewButton('view-right',1);
+    window.addEventListener('keydown',(e)=>{
+      const key=e.key.toLowerCase();
+      if(key==='w'||key==='arrowup'){e.preventDefault();if(state.mode==='moving')state.power=true;}
+      if(key==='s'||key==='arrowdown'){e.preventDefault();if(state.mode==='moving')state.brake=true;}
+      if(key==='arrowleft'){e.preventDefault();state.viewInput=-1;}
+      if(key==='arrowright'){e.preventDefault();state.viewInput=1;}
+    });
+    window.addEventListener('keyup',(e)=>{
+      const key=e.key.toLowerCase();if(key==='w'||key==='arrowup')state.power=false;if(key==='s'||key==='arrowdown')state.brake=false;
+      if(key==='arrowleft'&&state.viewInput===-1)state.viewInput=0;if(key==='arrowright'&&state.viewInput===1)state.viewInput=0;
+    });
+    window.addEventListener('blur',()=>{state.power=false;state.brake=false;state.viewInput=0;});
+    window.addEventListener('resize',()=>{camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.65));});
+    $('load-note').hidden=true;
+    updateHUD();
+    setSubtitle('Saltlight Terminus · all aboard for the islands.',5200);
+    animate();
+  </script>
+</body>
+</html>
