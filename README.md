@@ -6,6 +6,8 @@ El [prompt canónico](./benchmark_prompt.txt) y la [rúbrica separada](./benchma
 
 [V4 está archivado en `runs/v4/`](./runs/v4/benchmark_V3_V4.md) como resultado negativo reproducible. Su HTML, capturas, verificación y telemetría permanecen disponibles; V3 sigue siendo la versión publicada recomendada. V4 tardó 40,4 min y consumió 11,54 M tokens frente a 27,0 min y 8,03 M de V3 bruto. Estas cifras describen ejecuciones concretas y no aíslan cuál cambio de V4 causó la regresión.
 
+[V3.1 observed](./runs/v3_1_observed/README.md) mide la corrección de MCP y referencias de skills con OMP 18.3.0. Tardó 27,9 min y consumió 9,04 M tokens. La sesión leyó una skill compartida desde `~/.agents/skills`, lo que motivó una segunda corrida con esa fuente desactivada. V3 sigue siendo la entrega recomendada.
+
 ## Actualización: OMP Custom V3 (26-09-2026)
 
 | Entrega | Archivo |

@@ -1,0 +1,38 @@
+{
+  "accelerating": {
+    "phase": "driving",
+    "speed": 1.115,
+    "comfort": 93.90514
+  },
+  "braking": {
+    "speed": 0,
+    "comfort": 93.83014
+  },
+  "mangoArrival": {
+    "heading": "Mango Tide",
+    "bonus": 75,
+    "phase": "arrived"
+  },
+  "mangoDoors": {
+    "passengers": 8,
+    "workshopAction": "Visit the workshop",
+    "phase": "doors"
+  },
+  "workshopStart": {
+    "phase": "workshop",
+    "step": "idle",
+    "selectedPart": "hearth"
+  },
+  "afterOneFit": {
+    "step": "complete",
+    "progress": 1,
+    "button": "Roll out to the line",
+    "selectedPart": "hearth"
+  },
+  "afterExit": {
+    "phase": "driving",
+    "direction": -1,
+    "destination": "Saltlight Terminus"
+  },
+  "errors": []
+}

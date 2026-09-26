@@ -1,0 +1,46 @@
+{
+  "first": "2026-09-26T23:10:02.104Z",
+  "last": "2026-09-26T23:37:56.608Z",
+  "wall_seconds": 1674.5,
+  "usage": {
+    "requests": 90,
+    "input": 421259,
+    "cacheRead": 8531328,
+    "cacheWrite": 0,
+    "output": 85418,
+    "reasoningTokens": 47927,
+    "totalTokens": 9038005,
+    "cost": 0.34029635999999996
+  },
+  "tools": {
+    "todo": 4,
+    "read": 19,
+    "glob": 1,
+    "write": 2,
+    "bash": 2,
+    "eval": 44,
+    "edit": 14,
+    "grep": 4
+  },
+  "tool_total": 90,
+  "max_assistant_gap_seconds": 378.6,
+  "compactions": [],
+  "models": [],
+  "tiers": [],
+  "events": {
+    "message": 181,
+    "custom": 91,
+    "title_change": 1,
+    "custom_message": 2
+  },
+  "sessionId": "01a0dffb-8f13-7241-9b18-ce0b32ef7311",
+  "ompVersion": "18.3.0",
+  "model": "openai-codex/gpt-6-luna",
+  "effort": "max",
+  "serviceTier": "priority",
+  "promptSha256": "b5d0e0390ef75b5e0a33a5c62f92936894a85d0467989dd3205c265d4c3ed2b7",
+  "skillReads": [
+    "design-taste-frontend"
+  ],
+  "completion": "session_exit normal; wrapper exited 143 after final response"
+}

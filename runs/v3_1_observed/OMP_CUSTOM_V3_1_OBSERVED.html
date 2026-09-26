@@ -1,0 +1,947 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#172d44">
+  <title>Cloudline · A little ride above the sea</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f7f3e9;
+      --muted: #c5d0d1;
+      --quiet: #96aaa9;
+      --panel: rgba(20, 39, 55, .78);
+      --panel-strong: rgba(20, 39, 55, .94);
+      --line: rgba(246, 240, 224, .18);
+      --leaf: #9bc38d;
+      --leaf-dark: #405e48;
+      --sun: #f0c987;
+      --radius: 20px;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #182f49; }
+    body { min-height: 100dvh; touch-action: manipulation; user-select: none; }
+    button { font: inherit; color: inherit; }
+    #game { position: relative; width: 100%; height: 100dvh; min-height: 100%; overflow: hidden; isolation: isolate; }
+    #world { position: absolute; inset: 0; width: 100%; height: 100%; display: block; outline: none; }
+    .vignette { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(14, 28, 44, .34), transparent 23%, transparent 66%, rgba(13, 29, 41, .42)); z-index: 1; }
+    .grain { position: absolute; inset: 0; pointer-events: none; z-index: 1; opacity: .09; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.32'/%3E%3C/svg%3E"); mix-blend-mode: soft-light; }
+    .ui { z-index: 3; position: absolute; }
+    .topbar { inset: max(20px, env(safe-area-inset-top)) 24px auto 24px; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; pointer-events: none; }
+    .route-card, .right-stack, .speed-card, .comfort-card, .station-card, .workshop-card, .hint-card { pointer-events: auto; }
+    .route-card { padding: 16px 18px 15px; width: min(310px, calc(100vw - 40px)); border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); backdrop-filter: blur(18px); box-shadow: 0 14px 42px rgba(8, 20, 31, .14); }
+    .eyebrow { color: var(--leaf); font-size: 10px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
+    .route-title { margin: 7px 0 4px; font: 600 24px/1.05 Georgia, "Times New Roman", serif; letter-spacing: -.035em; }
+    .route-meta { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; letter-spacing: .015em; }
+    .route-meta .arrow { color: var(--sun); font-size: 16px; }
+    .route-wallet { display: flex; align-items: center; gap: 12px; margin-top: 10px; padding-top: 9px; border-top: 1px solid rgba(243, 241, 225, .11); color: var(--quiet); font-size: 10px; font-weight: 650; letter-spacing: .02em; }
+    .route-wallet span { display: flex; align-items: center; gap: 5px; }
+    .route-wallet b { color: var(--ink); font-variant-numeric: tabular-nums; }
+    .route-wallet i { color: var(--sun); font-style: normal; }
+    .right-stack { display: flex; gap: 9px; align-items: flex-start; }
+    .stat-chip { min-height: 45px; display: flex; align-items: center; gap: 9px; padding: 0 13px; border: 1px solid var(--line); border-radius: 15px; background: var(--panel); backdrop-filter: blur(16px); color: var(--ink); font-size: 12px; box-shadow: 0 12px 36px rgba(8, 20, 31, .12); }
+    .stat-chip strong { font-weight: 750; font-variant-numeric: tabular-nums; }
+    .stat-icon { width: 22px; height: 22px; border-radius: 50%; background: rgba(240, 201, 135, .17); color: var(--sun); display: grid; place-items: center; font-size: 12px; }
+    .weather-chip { min-width: 117px; }
+    .weather-mark { width: 8px; height: 8px; border-radius: 50%; background: var(--leaf); box-shadow: 0 0 13px rgba(155, 195, 141, .8); }
+    .weather-chip.wind .weather-mark { background: #e2b775; box-shadow: 0 0 14px rgba(226, 183, 117, .75); }
+    .icon-button { height: 45px; padding: 0 14px; border: 1px solid var(--line); border-radius: 15px; background: var(--panel); backdrop-filter: blur(16px); font-size: 11px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; transition: background .2s, transform .18s, border-color .2s; }
+    .icon-button:hover { background: rgba(35, 61, 76, .94); border-color: rgba(240, 201, 135, .38); }
+    .icon-button:active, .drive-button:active, .action-button:active { transform: translateY(1px) scale(.985); }
+    .bottom-ui { position: absolute; inset: auto 24px max(22px, env(safe-area-inset-bottom)) 24px; display: grid; grid-template-columns: minmax(230px, 1fr) minmax(248px, 310px) minmax(230px, 1fr); align-items: end; gap: 14px; z-index: 3; pointer-events: none; }
+    .comfort-card { padding: 15px 17px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); backdrop-filter: blur(18px); box-shadow: 0 14px 42px rgba(8, 20, 31, .14); }
+    .comfort-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .comfort-label { font-size: 10px; text-transform: uppercase; letter-spacing: .16em; font-weight: 800; color: var(--muted); }
+    .comfort-value { color: var(--leaf); font-size: 12px; font-weight: 750; font-variant-numeric: tabular-nums; }
+    .comfort-track { height: 5px; margin: 11px 0 9px; border-radius: 99px; background: rgba(225, 233, 218, .17); overflow: hidden; }
+    .comfort-fill { height: 100%; width: 94%; background: linear-gradient(90deg, #7da976, #c8d9a8); border-radius: inherit; transition: width .25s; box-shadow: 0 0 14px rgba(174, 208, 154, .28); }
+    .station-ends { display: flex; justify-content: space-between; color: #d4d8d0; font-size: 10px; font-weight: 650; letter-spacing: .025em; }
+    .streak-row { margin-top: 11px; padding-top: 10px; border-top: 1px solid rgba(243, 241, 225, .11); display: flex; justify-content: space-between; color: var(--quiet); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+    .streak-row strong { color: var(--sun); font-size: 11px; letter-spacing: .05em; font-variant-numeric: tabular-nums; }
+    .speed-card { min-height: 111px; position: relative; display: flex; flex-direction: column; justify-content: center; padding: 14px 18px 13px; border: 1px solid rgba(246, 240, 224, .22); border-radius: 24px; background: rgba(18, 38, 54, .88); backdrop-filter: blur(20px); box-shadow: 0 18px 48px rgba(8, 20, 31, .24); text-align: center; overflow: hidden; }
+    .speed-card::before { content: ""; position: absolute; width: 160px; height: 120px; left: 50%; top: -74px; transform: translateX(-50%); background: radial-gradient(ellipse, rgba(182, 210, 157, .21), transparent 70%); pointer-events: none; }
+    .speed-row { display: flex; align-items: baseline; justify-content: center; gap: 7px; position: relative; }
+    .speed-number { font: 500 43px/.95 Georgia, "Times New Roman", serif; letter-spacing: -.06em; font-variant-numeric: tabular-nums; }
+    .speed-unit { color: var(--quiet); font-size: 10px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+    .speed-bar { height: 4px; margin-top: 11px; border-radius: 20px; background: rgba(239, 239, 222, .16); overflow: hidden; position: relative; }
+    .speed-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #89a879, #f0c987); transition: width .16s linear; }
+    .speed-caption { margin-top: 8px; color: var(--quiet); font-size: 9px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+    .controls { display: flex; justify-content: flex-end; gap: 10px; pointer-events: auto; }
+    .drive-button { min-width: 104px; height: 72px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; border: 1px solid rgba(246, 240, 224, .24); border-radius: 21px; background: var(--panel); backdrop-filter: blur(16px); cursor: pointer; transition: transform .18s, background .2s, border-color .2s, box-shadow .2s; touch-action: none; box-shadow: 0 12px 30px rgba(8, 20, 31, .1); }
+    .drive-button:hover { background: rgba(35, 61, 76, .96); border-color: rgba(240, 201, 135, .45); }
+    .drive-button.held { background: rgba(93, 127, 86, .95); border-color: rgba(194, 222, 160, .75); box-shadow: 0 0 0 3px rgba(194, 222, 160, .1), 0 12px 30px rgba(8, 20, 31, .16); }
+    .drive-button.brake.held { background: rgba(159, 102, 77, .95); border-color: rgba(238, 182, 138, .7); }
+    .drive-glyph { font-size: 21px; line-height: 1; color: var(--leaf); }
+    .brake .drive-glyph { color: #efb18c; }
+    .drive-label { font-size: 9px; font-weight: 850; letter-spacing: .16em; text-transform: uppercase; }
+    .key-hint { color: rgba(240, 238, 219, .61); font-size: 9px; letter-spacing: .04em; }
+    .toast { z-index: 5; position: absolute; top: max(92px, calc(env(safe-area-inset-top) + 72px)); left: 50%; transform: translate(-50%, -10px); padding: 11px 17px; border: 1px solid rgba(255,255,255,.18); border-radius: 999px; background: rgba(23, 43, 58, .88); color: #faf5e9; font-size: 12px; font-weight: 700; letter-spacing: .025em; opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; white-space: nowrap; box-shadow: 0 12px 32px rgba(7, 19, 29, .2); backdrop-filter: blur(12px); }
+    .toast.visible { opacity: 1; transform: translate(-50%, 0); }
+    .station-card { position: absolute; left: 50%; bottom: clamp(126px, 22vh, 210px); transform: translate(-50%, 16px); width: min(420px, calc(100vw - 32px)); padding: 22px; border: 1px solid rgba(243, 238, 219, .22); border-radius: 25px; background: var(--panel-strong); backdrop-filter: blur(22px); box-shadow: 0 26px 80px rgba(5, 16, 28, .34); opacity: 0; visibility: hidden; transition: opacity .28s, transform .28s, visibility .28s; text-align: center; }
+    .station-card.visible { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+    .station-card h2 { margin: 8px 0 6px; font: 500 29px/1.05 Georgia, "Times New Roman", serif; letter-spacing: -.035em; }
+    .station-card p { margin: 0 auto 17px; max-width: 31ch; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .station-card .station-symbol { width: 42px; height: 42px; margin: 0 auto 11px; display: grid; place-items: center; border: 1px solid rgba(240,201,135,.35); border-radius: 50%; color: var(--sun); font-size: 20px; }
+    .action-button { min-height: 47px; width: 100%; padding: 0 18px; border: 0; border-radius: 14px; background: #b7cf9f; color: #193328; font-size: 11px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; transition: transform .18s, background .18s; }
+    .action-button:hover { background: #c9ddb2; }
+    .action-button:disabled { opacity: .47; cursor: default; }
+    .secondary-button { margin-top: 8px; background: transparent; border: 1px solid rgba(245, 240, 222, .22); color: var(--ink); }
+    .secondary-button:hover { background: rgba(246, 240, 224, .09); }
+    .workshop-card { position: absolute; top: 50%; right: clamp(24px, 6vw, 92px); transform: translate(12px, -50%); width: min(385px, calc(100vw - 32px)); padding: 23px; border: 1px solid rgba(248, 239, 214, .24); border-radius: 25px; background: rgba(26, 43, 50, .92); backdrop-filter: blur(22px); box-shadow: 0 28px 90px rgba(7, 17, 23, .34); opacity: 0; visibility: hidden; transition: opacity .3s, transform .3s, visibility .3s; }
+    .workshop-card.visible { opacity: 1; visibility: visible; transform: translate(0, -50%); }
+    .workshop-card h2 { margin: 7px 0 5px; font: 500 30px/1 Georgia, "Times New Roman", serif; letter-spacing: -.035em; }
+    .workshop-sub { margin: 0 0 17px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .part-options { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin: 15px 0 14px; }
+    .part-option { min-height: 83px; padding: 12px; border: 1px solid rgba(243, 238, 219, .17); border-radius: 15px; background: rgba(255,255,255,.045); text-align: left; cursor: pointer; transition: background .2s, border-color .2s, transform .18s; }
+    .part-option.selected { border-color: rgba(185, 211, 148, .78); background: rgba(131, 167, 109, .16); }
+    .part-option:active { transform: scale(.985); }
+    .part-name { display: block; color: #fbf6e8; font: 600 15px Georgia, "Times New Roman", serif; }
+    .part-copy { display: block; margin-top: 5px; color: var(--quiet); font-size: 10px; line-height: 1.35; }
+    .work-stage { display: flex; justify-content: space-between; color: var(--muted); font-size: 10px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+    .work-progress { height: 5px; margin: 9px 0 15px; border-radius: 20px; background: rgba(239, 239, 222, .15); overflow: hidden; }
+    .work-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #88a96e, #edc782); transition: width .16s linear; }
+    .workshop-foot { margin: 12px 0 0; color: var(--quiet); font-size: 10px; line-height: 1.45; text-align: center; }
+    .subtitle { z-index: 4; position: absolute; left: 50%; bottom: clamp(112px, 19vh, 190px); transform: translate(-50%, 8px); padding: 9px 15px; border: 1px solid rgba(247, 241, 222, .12); border-radius: 999px; background: rgba(17, 34, 48, .7); color: #f4ecda; font: 500 13px Georgia, "Times New Roman", serif; letter-spacing: .015em; opacity: 0; transition: opacity .35s, transform .35s; pointer-events: none; white-space: nowrap; backdrop-filter: blur(10px); }
+    .subtitle.visible { opacity: 1; transform: translate(-50%, 0); }
+    .title-card { position: absolute; z-index: 4; left: 50%; top: 51%; transform: translate(-50%, -50%); width: min(530px, calc(100vw - 32px)); padding: 28px 32px 25px; border: 1px solid rgba(247, 241, 222, .23); border-radius: 29px; background: rgba(22, 41, 55, .86); backdrop-filter: blur(20px); box-shadow: 0 24px 90px rgba(8, 21, 32, .24); text-align: center; transition: opacity .4s, transform .4s, visibility .4s; }
+    .title-card.hidden { opacity: 0; visibility: hidden; transform: translate(-50%, -46%); }
+    .title-mark { color: var(--leaf); font-size: 11px; font-weight: 850; letter-spacing: .23em; text-transform: uppercase; }
+    .title-card h1 { margin: 11px 0 9px; color: #fbf5e9; font: 500 clamp(36px, 5.4vw, 57px)/.98 Georgia, "Times New Roman", serif; letter-spacing: -.06em; }
+    .title-card p { max-width: 39ch; margin: 0 auto 20px; color: #ced6d1; font-size: 13px; line-height: 1.55; }
+    .title-foot { margin-top: 13px; color: #9fb1ae; font-size: 10px; letter-spacing: .08em; }
+    .title-card .action-button { max-width: 255px; }
+    .help-panel { position: absolute; right: 24px; bottom: 119px; z-index: 2; color: rgba(242, 239, 220, .7); font-size: 10px; line-height: 1.65; text-align: right; pointer-events: none; }
+    .help-panel b { color: #f5edd9; font-weight: 750; }
+    .workshop-hud .bottom-ui, .workshop-hud .topbar { opacity: .28; transition: opacity .3s; }
+    .workshop-hud .workshop-card { z-index: 5; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    @media (max-width: 760px) {
+      .topbar { inset: max(12px, env(safe-area-inset-top)) 12px auto 12px; gap: 8px; }
+      .route-card { width: min(230px, calc(100vw - 172px)); min-width: 177px; padding: 12px 13px; border-radius: 16px; }
+      .route-title { font-size: 19px; margin-top: 5px; }
+      .eyebrow { font-size: 8px; }
+      .route-meta { font-size: 10px; }
+      .right-stack { gap: 5px; }
+      .stat-chip { min-height: 39px; padding: 0 9px; gap: 6px; font-size: 10px; border-radius: 13px; white-space: nowrap; }
+      .stat-chip strong { white-space: nowrap; }
+      .weather-chip { min-width: auto; padding: 0 8px; gap: 6px; }
+      .weather-chip .weather-copy { display: inline; font-size: 9px; }
+      .passenger-chip { padding: 0 8px; }
+      .passenger-chip .stat-icon { display: none; }
+      .icon-button { height: 39px; width: 50px; min-width: 50px; padding: 0 6px; font-size: 0; border-radius: 13px; white-space: nowrap; }
+      .icon-button::before { content: "View"; font-size: 9px; letter-spacing: .04em; }
+      .bottom-ui { inset: auto 12px max(12px, env(safe-area-inset-bottom)) 12px; grid-template-columns: 1fr 1fr; gap: 8px; align-items: end; }
+      .comfort-card { grid-column: 1 / 3; grid-row: 1; padding: 11px 13px 10px; border-radius: 16px; }
+      .comfort-track { margin: 8px 0 7px; }
+      .streak-row { margin-top: 8px; padding-top: 7px; }
+      .speed-card { grid-column: 1; grid-row: 2; min-height: 75px; border-radius: 18px; padding: 9px 12px; }
+      .speed-number { font-size: 33px; }
+      .speed-bar { margin-top: 7px; }
+      .speed-caption { display: none; }
+      .controls { grid-column: 2; grid-row: 2; gap: 7px; }
+      .drive-button { min-width: 0; flex: 1; height: 75px; border-radius: 17px; }
+      .drive-glyph { font-size: 18px; }
+      .drive-label { font-size: 8px; }
+      .key-hint { display: none; }
+      .help-panel { display: none; }
+      .station-card { bottom: 180px; padding: 18px; }
+      .station-card h2 { font-size: 26px; }
+      .subtitle { top: 205px; bottom: auto; font-size: 12px; }
+      .toast { top: 156px; max-width: calc(100vw - 28px); overflow: hidden; text-overflow: ellipsis; }
+      .workshop-card { top: auto; right: 12px; bottom: 111px; left: 12px; width: auto; padding: 17px; border-radius: 20px; transform: translateY(12px); }
+      .workshop-card.visible { transform: translateY(0); }
+      .workshop-card h2 { font-size: 26px; }
+      .workshop-sub { margin-bottom: 10px; }
+      .part-options { margin: 10px 0; }
+      .part-option { min-height: 70px; padding: 10px; }
+      .part-name { font-size: 13px; }
+      .title-card { padding: 24px 23px 22px; top: 44%; }
+      .title-card p { font-size: 12px; }
+      .workshop-hud .bottom-ui, .workshop-hud .topbar { opacity: .13; }
+    }
+    @media (max-width: 380px) {
+      .route-card { min-width: 154px; width: calc(100vw - 163px); }
+      .route-title { font-size: 17px; }
+      .right-stack { gap: 4px; }
+      .stat-chip { padding: 0 7px; }
+      #streak-chip { display: none; }
+      .comfort-label { font-size: 9px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
+  </style>
+  <script type="importmap">
+    {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}
+  </script>
+</head>
+<body>
+  <main id="game" aria-label="Cloudline tram game">
+    <canvas id="world" aria-label="Three-dimensional tram ride above the sea"></canvas>
+    <div class="vignette"></div><div class="grain"></div>
+    <header class="ui topbar">
+      <section class="route-card" aria-label="Current route">
+        <div class="eyebrow">Cloudline · Coastal route</div>
+        <div class="route-title" id="route-destination">Mango Tide</div>
+        <div class="route-meta"><span id="origin-name">Saltlight Terminus</span><span class="arrow">↗</span><span id="destination-short">Mango Tide</span></div>
+        <div class="route-wallet"><span><i>◉</i><b id="coins">340</b> coins</span><span><i>✦</i><b id="streak">0</b> streak</span></div>
+      </section>
+      <div class="right-stack">
+        <div class="stat-chip weather-chip" id="weather-chip"><span class="weather-mark"></span><span class="weather-copy" id="weather-text">Steady</span></div>
+        <div class="stat-chip passenger-chip"><span class="stat-icon">◉</span><strong id="passengers">12 / 16</strong><span class="sr-only">passengers on board</span></div>
+        <button class="icon-button" id="view-button" type="button" aria-label="Change camera view">View · follow</button>
+      </div>
+    </header>
+    <section class="bottom-ui" aria-label="Driving controls and passenger comfort">
+      <div class="comfort-card">
+        <div class="comfort-head"><span class="comfort-label">Leg comfort</span><span class="comfort-value" id="comfort-number">94%</span></div>
+        <div class="comfort-track" aria-label="Passenger comfort"><div class="comfort-fill" id="comfort-fill"></div></div>
+        <div class="station-ends"><span id="comfort-origin">Saltlight Terminus</span><span id="comfort-destination">Mango Tide</span></div>
+        <div class="streak-row"><span>Balance streak</span><strong id="streak-label">Ready for a smooth run</strong></div>
+      </div>
+      <div class="speed-card">
+        <div class="speed-row"><span class="speed-number" id="speed">0</span><span class="speed-unit">km/h</span></div>
+        <div class="speed-bar"><div class="speed-fill" id="speed-fill"></div></div>
+        <div class="speed-caption" id="speed-caption">Waiting at Saltlight</div>
+      </div>
+      <div class="controls">
+        <button class="drive-button power" id="power-button" type="button" aria-label="Hold to accelerate">
+          <span class="drive-glyph">↑</span><span class="drive-label">Power</span><span class="key-hint">Hold W</span>
+        </button>
+        <button class="drive-button brake" id="brake-button" type="button" aria-label="Hold to brake">
+          <span class="drive-glyph">↓</span><span class="drive-label">Brake</span><span class="key-hint">Hold S</span>
+        </button>
+      </div>
+    </section>
+    <div class="help-panel"><b>W</b> power &nbsp; <b>S</b> brake<br><b>← →</b> lean &nbsp; <b>V</b> view &nbsp; <b>Space</b> doors</div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="subtitle" id="subtitle" aria-live="polite"></div>
+    <section class="station-card" id="station-card" aria-live="polite">
+      <div class="station-symbol">✦</div><div class="eyebrow" id="station-kicker">A little harbour in the clouds</div>
+      <h2 id="station-heading">Mango Tide</h2><p id="station-copy">The platform is waiting. Bring the tram to a gentle stop, then open the doors.</p>
+      <button class="action-button" id="station-action" type="button">Open the doors</button>
+      <button class="action-button secondary-button" id="station-secondary" type="button" hidden>Visit the workshop</button>
+    </section>
+    <section class="workshop-card" id="workshop-card" aria-label="Oliver Cloudworks workshop">
+      <div class="eyebrow">Oliver Cloudworks · home island</div>
+      <h2>Cloudworks</h2>
+      <p class="workshop-sub">The tram rolls into Oliver's little workshop. Choose a finishing touch for the next ride.</p>
+      <div class="part-options" id="part-options">
+        <button class="part-option selected" type="button" data-part="hearth" aria-pressed="true"><span class="part-name">Hearth leaves</span><span class="part-copy">A softer green canopy, gathered by hand.</span></button>
+        <button class="part-option" type="button" data-part="companion" aria-pressed="false"><span class="part-name">Little Companion</span><span class="part-copy">A luggage rack, lanterns and trailing vines.</span></button>
+      </div>
+      <div class="work-stage"><span id="work-stage-label">Ready for a little care</span><span id="work-percent">0%</span></div>
+      <div class="work-progress"><div class="work-fill" id="work-fill"></div></div>
+      <button class="action-button" id="work-button" type="button">Fit the new parts</button>
+      <p class="workshop-foot" id="workshop-foot">Sit back and watch the workshop.</p>
+    </section>
+    <section class="title-card" id="title-card">
+      <div class="title-mark">Cloudline · Coastal route</div>
+      <h1>A little ride<br>above the sea</h1>
+      <p>Take the old green tram from Saltlight Terminus to Mango Tide. The islands are close, but the clouds are wide.</p>
+      <button class="action-button" id="begin-button" type="button">Depart Saltlight</button>
+      <div class="title-foot">Hold W or touch Power to set off gently</div>
+    </section>
+  </main>
+  <script type="module">
+    import * as THREE from 'three';
+
+    // All scenery is built from small low-poly shapes so the file has no asset dependencies.
+    const game = document.getElementById('game');
+    const $ = (id) => document.getElementById(id);
+    const renderer = new THREE.WebGLRenderer({ canvas: $('world'), antialias: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.12;
+    renderer.shadowMap.enabled = false;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(44, window.innerWidth / window.innerHeight, 0.1, 700);
+    const clock = new THREE.Clock();
+    const worldGroup = new THREE.Group();
+    const workshopGroup = new THREE.Group();
+    scene.add(worldGroup, workshopGroup);
+    workshopGroup.visible = false;
+    const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+    const mat = (color, roughness = .82, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness, ...extra });
+    const materials = {
+      stone: mat('#526879'), stoneLight: mat('#758a87'), grass: mat('#829c75'), grassLight: mat('#a1ae7f'),
+      cream: mat('#e8d7b6'), terracotta: mat('#b7604d'), terracotta2: mat('#ca7955'), wood: mat('#8c6547'),
+      darkWood: mat('#523f37'), green: mat('#285949'), greenLight: mat('#4e795e'), glass: new THREE.MeshPhysicalMaterial({ color: '#abd8d6', roughness: .2, metalness: .05, transparent: true, opacity: .55, transmission: .16, side: THREE.DoubleSide }),
+      sea: new THREE.MeshStandardMaterial({ color: '#236d87', roughness: .3, metalness: .13, vertexColors: true }),
+      cloud: new THREE.MeshStandardMaterial({ color: '#c7d6d5', roughness: 1, transparent: true, opacity: .8, flatShading: true }),
+      glow: new THREE.MeshStandardMaterial({ color: '#ffd17e', emissive: '#efa84b', emissiveIntensity: 1.35, roughness: .34 }),
+      rail: mat('#c7a66d', .44, { metalness: .37 }), railSide: mat('#534e43', .7)
+    };
+    scene.add(new THREE.HemisphereLight('#d6eaff', '#596b6c', 1.65));
+    const keyLight = new THREE.DirectionalLight('#ffe5c0', 2.15);
+    keyLight.position.set(-36, 55, 24); keyLight.castShadow = true; keyLight.shadow.mapSize.set(1024, 1024);
+    keyLight.shadow.camera.left = -80; keyLight.shadow.camera.right = 80; keyLight.shadow.camera.top = 90; keyLight.shadow.camera.bottom = -90;
+    scene.add(keyLight);
+    scene.add(new THREE.AmbientLight('#a9c1df', .38));
+
+    function makeSkyTexture() {
+      const canvas = document.createElement('canvas'); canvas.width = 2; canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      const gradient = ctx.createLinearGradient(0, 0, 0, 512);
+      gradient.addColorStop(0, '#172948'); gradient.addColorStop(.3, '#344d76'); gradient.addColorStop(.63, '#778ca2'); gradient.addColorStop(.83, '#d3937a'); gradient.addColorStop(1, '#e9b18a');
+      ctx.fillStyle = gradient; ctx.fillRect(0, 0, 2, 512);
+      const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace; return texture;
+    }
+    scene.background = makeSkyTexture();
+    scene.fog = new THREE.Fog('#8295a3', 105, 310);
+
+    const routePoints = [
+      V3(-4, 7.55, 7), V3(-5, 8.7, -8), V3(1, 7.5, -24), V3(9, 5.8, -39),
+      V3(11, 4.6, -55), V3(5, 6.7, -70), V3(-5, 10, -84), V3(-8, 11, -99),
+      V3(-2, 8, -115), V3(5, 6.5, -130), V3(2, 7.55, -141)
+    ];
+    const railPath = new THREE.CatmullRomCurve3(routePoints, false, 'centripetal', .5);
+    railPath.arcLengthDivisions = 900;
+    const routeLength = railPath.getLength();
+
+    function addBox(parent, position, size, material, rotation = null, cast = true) {
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(size[0], size[1], size[2]), material);
+      mesh.position.set(position[0], position[1], position[2]);
+      if (rotation) mesh.rotation.set(rotation[0], rotation[1], rotation[2]);
+      mesh.castShadow = cast; mesh.receiveShadow = true; parent.add(mesh); return mesh;
+    }
+    function addCylinder(parent, position, radiusTop, radiusBottom, height, material, segments = 8, rotation = null) {
+      const mesh = new THREE.Mesh(new THREE.CylinderGeometry(radiusTop, radiusBottom, height, segments), material);
+      mesh.position.set(position[0], position[1], position[2]);
+      if (rotation) mesh.rotation.set(rotation[0], rotation[1], rotation[2]);
+      mesh.castShadow = true; mesh.receiveShadow = true; parent.add(mesh); return mesh;
+    }
+    function addSphere(parent, position, scale, material, segments = 8) {
+      const mesh = new THREE.Mesh(new THREE.SphereGeometry(1, segments, Math.max(4, segments - 2)), material);
+      mesh.position.set(position[0], position[1], position[2]); mesh.scale.set(scale[0], scale[1], scale[2]); mesh.castShadow = true; mesh.receiveShadow = true; parent.add(mesh); return mesh;
+    }
+    function lineTube(parent, points, radius, material, closed = false, tubularSegments = 24) {
+      const curve = new THREE.CatmullRomCurve3(points.map(p => p.clone()), closed, 'centripetal');
+      const mesh = new THREE.Mesh(new THREE.TubeGeometry(curve, tubularSegments, radius, 5, closed), material);
+      mesh.castShadow = true; parent.add(mesh); return mesh;
+    }
+
+    function makeOcean() {
+      const geo = new THREE.PlaneGeometry(620, 620, 80, 80);
+      geo.rotateX(-Math.PI / 2);
+      const pos = geo.attributes.position; const colors = [];
+      const cA = new THREE.Color('#347e91'), cB = new THREE.Color('#18516e');
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i), z = pos.getZ(i);
+        pos.setY(i, -15.3 + Math.sin(x * .047 + z * .018) * .19 + Math.cos(z * .063 - x * .025) * .11);
+        const t = .5 + .5 * Math.sin(x * .025 + z * .029);
+        const c = cA.clone().lerp(cB, t); colors.push(c.r, c.g, c.b);
+      }
+      geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3)); geo.computeVertexNormals();
+      const ocean = new THREE.Mesh(geo, materials.sea); ocean.position.y = 0; ocean.receiveShadow = true; worldGroup.add(ocean);
+    }
+    makeOcean();
+
+    // Multi-puff cloud banks sit between the sea and the islands; slow motion gives the route a sense of height.
+    const cloudGeometry = new THREE.SphereGeometry(1, 8, 6);
+    const cloudPuffs = [];
+    function makeCloudBank(cx, cy, cz, width, count, seed) {
+      const bank = new THREE.Group();
+      let state = seed >>> 0;
+      const rand = () => { state = (state * 1664525 + 1013904223) >>> 0; return state / 4294967296; };
+      for (let i = 0; i < count; i++) {
+        const r = rand();
+        const puff = new THREE.Mesh(cloudGeometry, materials.cloud);
+        puff.position.set((rand() - .5) * width, (rand() - .5) * 4, (rand() - .5) * width * .6);
+        const s = 2.5 + r * 5.7; puff.scale.set(s * (1.2 + rand()), s * .55, s * .72); puff.rotation.y = rand() * Math.PI;
+        bank.add(puff);
+      }
+      bank.position.set(cx, cy, cz); worldGroup.add(bank); cloudPuffs.push({ bank, baseX: cx, baseZ: cz, seed: seed * .07 });
+    }
+    makeCloudBank(0, -5.5, -36, 68, 12, 4); makeCloudBank(5, -4.6, -81, 77, 15, 8);
+    makeCloudBank(0, -5.6, -128, 69, 13, 17); makeCloudBank(-25, -7.8, -58, 52, 11, 23);
+    makeCloudBank(26, -7.2, -105, 56, 12, 32); makeCloudBank(-26, -6, -133, 49, 9, 41);
+
+    function makeIsland(cx, cz, scale = 1, seed = 1, main = false) {
+      const group = new THREE.Group(); group.position.set(cx, 4.0 * scale, cz); group.scale.setScalar(scale); worldGroup.add(group);
+      const rock = new THREE.Mesh(new THREE.CylinderGeometry(14.5, 8.4, 7.2, 11, 4), materials.stone);
+      rock.position.y = 0; rock.castShadow = true; rock.receiveShadow = true; group.add(rock);
+      const lip = new THREE.Mesh(new THREE.CylinderGeometry(14.65, 14.2, .44, 11, 1), materials.grass);
+      lip.position.y = 3.62; lip.receiveShadow = true; group.add(lip);
+      const grassCap = new THREE.Mesh(new THREE.CylinderGeometry(14.35, 14.35, .22, 11, 1), materials.grassLight);
+      grassCap.position.y = 3.89; grassCap.receiveShadow = true; group.add(grassCap);
+      // Angular rock shelves and hanging roots break the silhouette below the grassy lip.
+      let rng = seed >>> 0; const rand = () => { rng = (rng * 1103515245 + 12345) >>> 0; return rng / 4294967296; };
+      for (let i = 0; i < (main ? 18 : 8); i++) {
+        const a = rand() * Math.PI * 2, d = 7 + rand() * 5, y = -1.4 - rand() * 3.6;
+        const shard = new THREE.Mesh(new THREE.ConeGeometry(.8 + rand() * 1.4, 2.4 + rand() * 4.2, 5), i % 3 ? materials.stone : materials.stoneLight);
+        shard.position.set(Math.cos(a) * d, y, Math.sin(a) * d); shard.rotation.z = .15 + rand() * .42; shard.rotation.x = rand() * .3; shard.castShadow = true; group.add(shard);
+      }
+      const groundY = 4.05;
+      if (main) {
+        // Cobbled paths are softly indicated with flat stone stepping blocks.
+        for (let i = 0; i < 14; i++) {
+          const z = (i - 6.5) * 1.3; const x = Math.sin(i * .45) * 1.3;
+          addBox(group, [x, groundY + .04, z], [1.5, .08, .82], i % 2 ? materials.cream : materials.stoneLight, [0, Math.sin(i) * .1, 0], false);
+        }
+        const houseSpots = [[-9,-7],[-5,-10],[0,-10],[6,-8],[9,-2],[8,5],[4,9],[-5,8],[-10,3]];
+        houseSpots.forEach((spot, i) => makeHouse(group, spot[0], groundY, spot[1], i, i === 2));
+        for (let i = 0; i < 7; i++) {
+          const a = i * Math.PI * .82 + seed; const x = Math.cos(a) * (10.3 + (i % 2)); const z = Math.sin(a) * (9.6 + (i % 3));
+          makeTree(group, x, groundY, z, .72 + (i % 3) * .12, i % 2 === 0);
+        }
+        for (let i = 0; i < 4; i++) {
+          const x = -9.2 + i * 5.7;
+          addCylinder(group, [x, groundY + 1.5, 3.4], .07, .09, 3, materials.darkWood, 6);
+          addBox(group, [x, groundY + 2.8, 3.4], [.42, .5, .42], materials.glow);
+          const lampLight = new THREE.PointLight('#ffc66f', .36, 8, 2); lampLight.position.set(x, groundY + 2.5, 3.4); group.add(lampLight);
+        }
+        makeTownFolk(group, [[-2.1,groundY,5.1],[.2,groundY,5.5],[2.25,groundY,5.2],[3.3,groundY,6.0]]);
+      }
+      return group;
+    }
+    function makeHouse(parent, x, y, z, idx, prominent = false) {
+      const scale = prominent ? 1.22 : .79 + (idx % 3) * .09;
+      const g = new THREE.Group(); g.position.set(x, y, z); g.scale.setScalar(scale); parent.add(g);
+      const walls = [materials.cream, mat('#d7c29f'), mat('#d6c8ac'), mat('#cdbb9e')][idx % 4];
+      addBox(g, [0, .92, 0], [2.55, 1.85, 2.25], walls);
+      const roof = new THREE.Mesh(new THREE.ConeGeometry(2.02, 1.24, 4), idx % 2 ? materials.terracotta : materials.terracotta2);
+      roof.position.set(0, 2.43, 0); roof.rotation.y = Math.PI / 4; roof.castShadow = true; g.add(roof);
+      addBox(g, [0, .31, 1.145], [.56, .86, .12], materials.darkWood);
+      addBox(g, [-.77, 1.13, 1.16], [.53, .53, .1], materials.glow, null, false);
+      addBox(g, [.77, 1.13, 1.16], [.53, .53, .1], materials.glow, null, false);
+      addBox(g, [-.77, 1.13, -1.16], [.53, .53, .1], materials.glow, null, false);
+      if (prominent) {
+        addBox(g, [0, 1.93, 1.2], [1.22, .13, .12], materials.wood);
+        addBox(g, [0, 1.65, 1.2], [.12, .53, .1], materials.wood);
+      }
+    }
+    function makeTree(parent, x, y, z, scale = 1, round = false) {
+      const tree = new THREE.Group(); tree.position.set(x, y, z); tree.scale.setScalar(scale); parent.add(tree);
+      addCylinder(tree, [0, .82, 0], .16, .25, 1.65, materials.wood, 6);
+      if (round) {
+        addSphere(tree, [0, 2.25, 0], [1.05, 1.35, 1.02], mat('#577f5b'), 7);
+        addSphere(tree, [.44, 2.05, -.14], [.8, .93, .77], mat('#74966a'), 7);
+      } else {
+        const foliage = mat('#61875f');
+        for (let i = 0; i < 3; i++) {
+          const cone = new THREE.Mesh(new THREE.ConeGeometry(1.05 - i * .17, 1.55, 7), i === 1 ? mat('#7e9a69') : foliage);
+          cone.position.y = 1.65 + i * .73; cone.castShadow = true; tree.add(cone);
+        }
+      }
+    }
+    function makeTownFolk(parent, points) {
+      const cloth = [mat('#b36e58'), mat('#5f7880'), mat('#d2a764'), mat('#718768')];
+      points.forEach((p, i) => {
+        const folk = new THREE.Group(); folk.position.set(p[0], p[1], p[2]); parent.add(folk);
+        addCylinder(folk, [0, .63, 0], .2, .24, .9, cloth[i % cloth.length], 6);
+        addSphere(folk, [0, 1.25, 0], [.23, .25, .22], mat('#d9aa81'), 7);
+        addSphere(folk, [0, 1.48, 0], [.24, .12, .23], i % 2 ? materials.terracotta : materials.green, 7);
+      });
+    }
+
+    // Two named harbour islands and their more distant floating neighbours.
+    makeIsland(-4, 1, 1, 12, true);
+    makeIsland(2, -145, 1, 24, true);
+    const remoteIslands = [[30,-39,.57,21],[-30,-66,.54,29],[29,-99,.68,37],[-27,-124,.47,44],[40,-143,.38,51]];
+    remoteIslands.forEach(([x,z,s,seed]) => {
+      const island = makeIsland(x, z, s, seed, false);
+      makeTree(island, 0, 4.08, 0, .7, true);
+      if (seed % 2) makeHouse(island, 3, 4.08, -2, seed, false);
+    });
+
+    function makeLighthouse(parent, x, y, z) {
+      const g = new THREE.Group(); g.position.set(x, y, z); parent.add(g);
+      addCylinder(g, [0, 2.35, 0], .85, 1.2, 4.7, materials.cream, 9);
+      addBox(g, [0, 4.05, .02], [1.1, .68, 1.1], materials.glow);
+      addCylinder(g, [0, 4.61, 0], .95, .76, .2, materials.darkWood, 9);
+      const roof = new THREE.Mesh(new THREE.ConeGeometry(1.2, .95, 9), materials.terracotta); roof.position.y = 5.18; roof.castShadow = true; g.add(roof);
+      addCylinder(g, [0, 5.84, 0], .12, .12, .62, materials.darkWood, 7);
+      const light = new THREE.PointLight('#ffd080', 1.35, 31, 2); light.position.set(0, 4.15, 0); g.add(light);
+      addBox(g, [0, .2, 0], [2.5, .35, 2.5], materials.stone);
+    }
+    makeLighthouse(worldGroup, -15.2, 7.85, -5.4);
+
+    function makeStation(x, y, z, name, dock = false) {
+      const station = new THREE.Group(); station.position.set(x, y, z); worldGroup.add(station);
+      addBox(station, [0, -.18, 0], [12, .42, 16], materials.wood);
+      addBox(station, [0, .05, 0], [11.2, .12, 15.2], materials.cream);
+      for (let i = -5; i <= 5; i += 1) addBox(station, [i, .14, 0], [.075, .035, 14.5], materials.wood, null, false);
+      // Keep the covered waiting room beside the rails so the parked tram stays in view.
+      const shelter = new THREE.Group(); shelter.position.x = -6.2; station.add(shelter);
+      addBox(shelter, [-4.6, 2.02, -2], [.28, 3.8, .28], materials.darkWood);
+      addBox(shelter, [4.6, 2.02, -2], [.28, 3.8, .28], materials.darkWood);
+      addBox(shelter, [-4.6, 2.02, 4], [.28, 3.8, .28], materials.darkWood);
+      addBox(shelter, [4.6, 2.02, 4], [.28, 3.8, .28], materials.darkWood);
+      addBox(shelter, [0, 3.98, 1], [10.4, .34, 8.7], materials.terracotta);
+      addBox(shelter, [0, 3.79, 1], [10.8, .16, 9.1], materials.darkWood);
+      addBox(shelter, [0, 2.95, 1], [6.3, 1.35, 5.6], materials.cream);
+      addBox(shelter, [0, 2.64, 3.84], [1.5, .85, .15], materials.wood);
+      addBox(shelter, [-1.85, 3.0, 3.88], [1.0, .7, .12], materials.glow, null, false);
+      addBox(shelter, [1.85, 3.0, 3.88], [1.0, .7, .12], materials.glow, null, false);
+      // A framed destination sign is readable at close range and gives the platform a lived-in detail.
+      addBox(station, [0, 2.54, -6.5], [5.4, 1.0, .18], materials.green);
+      addBox(station, [0, 2.56, -6.38], [4.9, .65, .035], materials.cream, null, false);
+      const signTextureCanvas = document.createElement('canvas'); signTextureCanvas.width = 512; signTextureCanvas.height = 128;
+      const ctx = signTextureCanvas.getContext('2d'); ctx.fillStyle = '#e7d8b8'; ctx.fillRect(0,0,512,128); ctx.fillStyle = '#315746'; ctx.font = 'bold 44px Georgia'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(name.toUpperCase(), 256, 66);
+      const signTexture = new THREE.CanvasTexture(signTextureCanvas); signTexture.colorSpace = THREE.SRGBColorSpace;
+      const sign = new THREE.Mesh(new THREE.PlaneGeometry(4.85, .61), new THREE.MeshBasicMaterial({ map: signTexture }));
+      sign.position.set(0, 2.56, -6.34); station.add(sign);
+      if (dock) {
+        for (let i = 0; i < 4; i++) {
+          addBox(station, [7 + i * 1.35, -.15, 1.5], [1.2, .25, 9], materials.wood);
+          addCylinder(station, [7 + i * 1.35, -1.15, 1.5], .18, .26, 2.1, materials.darkWood, 6);
+        }
+        addBox(station, [9.5, .08, 1.5], [7.3, .15, 9], materials.wood);
+        for (let i = 0; i < 3; i++) {
+          addCylinder(station, [7 + i * 2.2, .38, .6], .19, .24, .55, materials.terracotta, 7);
+          addSphere(station, [7 + i * 2.2, .81, .6], [.27,.36,.26], materials.greenLight, 7);
+        }
+      }
+    }
+    makeStation(-4, 7.5, 7, 'Saltlight Terminus', false);
+    makeStation(2, 7.5, -141, 'Mango Tide', true);
+
+    // The rails, ties and trestles are all sampled from one Catmull-Rom centerline.
+    function sideAt(t) {
+      const tangent = railPath.getTangentAt(THREE.MathUtils.clamp(t, 0, 1)).normalize();
+      return new THREE.Vector3().crossVectors(tangent, V3(0, 1, 0)).normalize();
+    }
+    for (const offset of [-.84, .84]) {
+      const points = [];
+      for (let i = 0; i <= 180; i++) {
+        const t = i / 180; points.push(railPath.getPointAt(t).addScaledVector(sideAt(t), offset));
+      }
+      const rail = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points, false, 'centripetal'), 850, .105, 7, false), materials.rail);
+      rail.castShadow = true; worldGroup.add(rail);
+    }
+    const sleeperGeo = new THREE.BoxGeometry(2.45, .15, .3);
+    const sleeperMat = materials.darkWood;
+    const sleeperCount = Math.ceil(routeLength / 1.2);
+    const sleepers = new THREE.InstancedMesh(sleeperGeo, sleeperMat, sleeperCount);
+    const dummy = new THREE.Object3D();
+    for (let i = 0; i < sleeperCount; i++) {
+      const t = i / (sleeperCount - 1); const p = railPath.getPointAt(t); const tangent = railPath.getTangentAt(t).normalize();
+      dummy.position.copy(p); dummy.position.y -= .14; dummy.quaternion.setFromUnitVectors(V3(0,0,1), tangent); dummy.updateMatrix(); sleepers.setMatrixAt(i, dummy.matrix);
+    }
+    sleepers.castShadow = true; sleepers.receiveShadow = true; worldGroup.add(sleepers);
+    for (let i = 0; i <= 18; i++) {
+      const t = .11 + i * .043; if (t > .89) break;
+      const p = railPath.getPointAt(t); const post = new THREE.Group(); post.position.copy(p); post.position.y = -9.8; worldGroup.add(post);
+      const height = p.y + 9.8;
+      const pier = addBox(post, [0, height / 2, 0], [.48, height, .58], materials.wood);
+      pier.castShadow = true;
+      addBox(post, [0, height - .5, 0], [2.55, .22, .62], materials.darkWood);
+      const legOffset = new THREE.Vector3().crossVectors(railPath.getTangentAt(t), V3(0,1,0)).normalize().multiplyScalar(1.2);
+      for (const side of [-1,1]) {
+        const leg = new THREE.Mesh(new THREE.BoxGeometry(.24, height * .64, .3), materials.wood);
+        leg.position.set(legOffset.x * side, height * .48, legOffset.z * side); leg.rotation.z = side * .12; leg.castShadow = true; post.add(leg);
+      }
+    }
+
+    // Distant orbital paths around the small islands.
+    function makeOrbit(x, y, z, rx, rz, rotation = .2) {
+      const points = [];
+      for (let i = 0; i <= 48; i++) {
+        const a = i / 48 * Math.PI * 2;
+        points.push(V3(x + Math.cos(a) * rx, y + Math.sin(a) * Math.sin(rotation) * rx, z + Math.sin(a) * rz));
+      }
+      const orbit = lineTube(worldGroup, points, .035, new THREE.MeshBasicMaterial({ color: '#f2c99a', transparent: true, opacity: .43 }), true, 100);
+      return orbit;
+    }
+    makeOrbit(29, 15, -101, 14, 5, .5); makeOrbit(-29, 18, -68, 10, 4, .65); makeOrbit(39, 11, -142, 8, 3, .35);
+    const starsGeometry = new THREE.BufferGeometry(); const stars = [];
+    let starSeed = 2027; const starRand = () => { starSeed = (starSeed * 1664525 + 1013904223) >>> 0; return starSeed / 4294967296; };
+    for (let i = 0; i < 420; i++) stars.push((starRand() - .5) * 420, 35 + starRand() * 170, -190 + starRand() * 255);
+    starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(stars, 3));
+    const starField = new THREE.Points(starsGeometry, new THREE.PointsMaterial({ color: '#fff1d3', size: .45, transparent: true, opacity: .72, sizeAttenuation: true })); worldGroup.add(starField);
+
+    function makeTram(upgraded = false) {
+      const outer = new THREE.Group(); const rig = new THREE.Group(); outer.add(rig);
+      const bodyMat = mat('#285b49', .58); const roofMat = mat(upgraded ? '#527a54' : '#244f43', .61);
+      addBox(rig, [0, -.48, 0], [3.5, .38, 7.3], materials.darkWood);
+      addBox(rig, [0, -.19, 0], [3.55, .32, 7.05], mat('#996c49'));
+      addBox(rig, [0, .58, 0], [3.35, 1.52, 6.7], bodyMat);
+      addBox(rig, [0, 1.35, 0], [3.44, .2, 6.8], roofMat);
+      // Broad glazing on both sides reads as curved glass without hiding the passenger silhouettes.
+      for (const side of [-1, 1]) {
+        for (const z of [-2.05, -.68, .68, 2.05]) {
+          const pane = new THREE.Mesh(new THREE.BoxGeometry(.055, .93, 1.12), materials.glass);
+          pane.position.set(side * 1.697, .69, z); pane.castShadow = false; rig.add(pane);
+          for (const dz of [-.59, .59]) addBox(rig, [side * 1.72, .69, z + dz], [.095, 1.12, .095], materials.wood);
+          addBox(rig, [side * 1.72, 1.24, z], [.09, .09, 1.24], materials.wood);
+          addBox(rig, [side * 1.72, .13, z], [.09, .09, 1.24], materials.wood);
+        }
+        // Small front and rear rounded windows give the cabin an old streetcar face.
+        for (const end of [-1, 1]) {
+          const frontPane = new THREE.Mesh(new THREE.BoxGeometry(1.08, .86, .045), materials.glass);
+          frontPane.position.set(0, .72, end * 3.36); rig.add(frontPane);
+          addBox(rig, [0, 1.19, end * 3.39], [1.3, .11, .12], materials.wood);
+          addBox(rig, [0, .23, end * 3.39], [1.3, .11, .12], materials.wood);
+        }
+      }
+      // Passenger heads and coats stay visible through the cabin glass.
+      const coats = [mat('#d4a266'), mat('#b97059'), mat('#7d9a81'), mat('#687f91')];
+      for (let i = 0; i < 4; i++) {
+        const x = i % 2 ? .57 : -.57; const z = i < 2 ? -.95 : 1.05;
+        addBox(rig, [x, .04, z], [.52, .65, .44], coats[i]);
+        addSphere(rig, [x, .51, z - .03], [.22, .24, .22], mat(i % 2 ? '#c78c68' : '#e0b18a'), 7);
+        addBox(rig, [x, -.26, z + .08], [.62, .12, .56], materials.wood);
+      }
+      const doorParts = [];
+      for (const side of [-1, 1]) {
+        for (const sign of [-1, 1]) {
+          const door = addBox(rig, [side * 1.73, .52, sign * .28], [.11, .98, .44], materials.green);
+          doorParts.push({ mesh: door, side, sign, baseZ: sign * .28 });
+        }
+        for (const z of [-2.5, 2.5]) {
+          const wheel = new THREE.Mesh(new THREE.CylinderGeometry(.38, .38, .22, 10), materials.railSide);
+          wheel.rotation.z = Math.PI / 2; wheel.position.set(side * 1.69, -.61, z); rig.add(wheel);
+        }
+        addBox(rig, [side * 1.73, -.02, 0], [.12, .12, 5.7], materials.wood);
+      }
+      // Two fit-outs share the green canopy but carry distinct parts and silhouettes.
+      const upgrade = new THREE.Group(); rig.add(upgrade);
+      const companionParts = new THREE.Group(); upgrade.add(companionParts);
+      const hearthLeaves = new THREE.Group(); upgrade.add(hearthLeaves);
+      // The Little Companion gets a luggage rack, parcels, lanterns and trailing vines.
+      for (const x of [-1.22, 1.22]) {
+        for (const z of [-2.4, 2.4]) addBox(companionParts, [x, 1.75, z], [.12, .68, .12], materials.wood);
+        addBox(companionParts, [x, 2.08, 0], [.13, .12, 5.0], materials.wood);
+      }
+      for (const z of [-2.4, 2.4]) addBox(companionParts, [0, 2.08, z], [2.55, .12, .13], materials.wood);
+      addBox(companionParts, [-.5, 2.25, -.9], [.9, .45, 1.05], mat('#b08a5a'), [0, .2, .08]);
+      addSphere(companionParts, [.58, 2.22, 1.2], [.63, .42, .61], mat('#92724f'), 7);
+      for (const side of [-1,1]) {
+        const lantern = addBox(companionParts, [side * 1.78, 1.02, -2.91], [.28, .34, .3], materials.glow);
+        const light = new THREE.PointLight('#ffca78', .33, 6, 2); light.position.copy(lantern.position); companionParts.add(light);
+        for (let i = 0; i < 5; i++) {
+          const leaf = addSphere(companionParts, [side * 1.79, .25 + i * .19, -.95 + i * .38], [.1, .18, .13], i % 2 ? materials.grassLight : materials.greenLight, 6);
+          leaf.rotation.z = side * (i % 2 ? .5 : -.45);
+        }
+        for (let i = 0; i < 6; i++) {
+          const leaf = addSphere(hearthLeaves, [side * 1.79, .18 + (i % 3) * .11, -3 + i * 1.15], [.12, .2, .16], i % 2 ? materials.grassLight : materials.greenLight, 6);
+          leaf.rotation.z = side * (i % 2 ? .55 : -.4);
+        }
+      }
+      const awning = addBox(rig, [0, 1.47, 0], [3.62, .12, 7.12], roofMat);
+      const valanceMat = mat(upgraded ? '#94ad77' : '#3a6852');
+      const valance = addBox(rig, [0, 1.37, -3.51], [3.6, .22, .12], valanceMat);
+      upgrade.visible = upgraded;
+      const wheels = [];
+      rig.traverse(obj => { if (obj.geometry?.type === 'CylinderGeometry' && obj.position.y < -.4) wheels.push(obj); });
+      return { outer, rig, upgrade, companionParts, hearthLeaves, doorParts, wheels, bodyMat, roofMat, awning, valance };
+    }
+    const tram = makeTram(false); worldGroup.add(tram.outer);
+    const workshopTram = makeTram(false); workshopGroup.add(workshopTram.outer);
+    function setUpgrade(cart, value, variant = 'companion') {
+      cart.upgrade.visible = value;
+      cart.hearthLeaves.visible = value && variant === 'hearth';
+      cart.companionParts.visible = value && variant === 'companion';
+      cart.valance.material = value ? mat('#abc27d') : mat('#3a6852');
+      cart.roofMat.color.set(value ? (variant === 'hearth' ? '#527c55' : '#47754d') : '#244f43');
+    }
+    setUpgrade(tram, false); setUpgrade(workshopTram, false);
+
+    // The second scene is a compact, top-down isometric island workshop.
+    function buildWorkshop() {
+      const groundMat = mat('#71846a'); const floorMat = mat('#c1ad87');
+      const floor = new THREE.Mesh(new THREE.CylinderGeometry(18, 15.2, 3.2, 10, 2), materials.stone); floor.position.set(0, -1.1, 0); floor.receiveShadow = true; floor.castShadow = true; workshopGroup.add(floor);
+      const turf = new THREE.Mesh(new THREE.CylinderGeometry(18, 18, .32, 10), groundMat); turf.position.set(0, .55, 0); turf.receiveShadow = true; workshopGroup.add(turf);
+      addBox(workshopGroup, [0, .79, 0], [13, .22, 12], floorMat);
+      // Rails continue past the open-front workshop bay.
+      for (const x of [-.84,.84]) addBox(workshopGroup, [x, .95, 0], [.12, .14, 24], materials.rail);
+      for (let z = -11; z <= 11; z += 1.25) addBox(workshopGroup, [0, .88, z], [2.45, .13, .28], materials.darkWood);
+      // Rear walls and side wings form an open repair bay.
+      addBox(workshopGroup, [0, 3.05, -6.2], [14, 4.5, .55], mat('#dfd0ae'));
+      addBox(workshopGroup, [-6.72, 2.7, -2.1], [.55, 3.7, 8.3], mat('#d7c39f'));
+      addBox(workshopGroup, [6.72, 2.7, -2.1], [.55, 3.7, 8.3], mat('#d7c39f'));
+      const roof = new THREE.Mesh(new THREE.ConeGeometry(9.1, 3.5, 4), materials.terracotta); roof.rotation.y = Math.PI / 4; roof.position.set(0, 5.98, -7); roof.scale.set(1,.72,.74); roof.castShadow = true; workshopGroup.add(roof);
+      addBox(workshopGroup, [0, 1.34, -5.75], [4.8, .27, .2], materials.wood);
+      const signCanvas = document.createElement('canvas'); signCanvas.width=512; signCanvas.height=128; const sctx=signCanvas.getContext('2d');
+      sctx.fillStyle='#294f43'; sctx.fillRect(0,0,512,128); sctx.fillStyle='#f0dfbb'; sctx.font='bold 45px Georgia'; sctx.textAlign='center'; sctx.textBaseline='middle'; sctx.fillText('OLIVER CLOUDWORKS',256,65);
+      const signTexture=new THREE.CanvasTexture(signCanvas); signTexture.colorSpace=THREE.SRGBColorSpace;
+      const sign = new THREE.Mesh(new THREE.PlaneGeometry(4.4, .96), new THREE.MeshBasicMaterial({map:signTexture})); sign.position.set(0, 3.85, -5.45); workshopGroup.add(sign);
+      // Workbench, spare rims, tools and warm task lamps.
+      addBox(workshopGroup, [-4.5, 1.57, -1.8], [2.2, .25, 1.25], materials.wood);
+      for (const x of [-5.25,-3.75]) addBox(workshopGroup,[x,.95,-1.8],[.17,1.25,.18],materials.darkWood);
+      for (let i=0;i<3;i++) addCylinder(workshopGroup,[-5.2+i*.7,1.85,-1.75],.11,.11,.64,materials.railSide,8,[Math.PI/2,0,0]);
+      addBox(workshopGroup, [4.7, 1.4, -2.05], [1.9, .18, 1.3], materials.darkWood);
+      for (const x of [4.1,5.3]) addCylinder(workshopGroup,[x,1.94,-2.05],.46,.46,.14,materials.rail,12,[Math.PI/2,0,0]);
+      for (let i=0;i<5;i++) {
+        const x=-5.5+i*2.7; addCylinder(workshopGroup,[x,1.18,5.3],.34,.4,.72,i%2?materials.terracotta:materials.wood,8);
+        if(i%2===0) makeTree(workshopGroup,x,1.18,5.3,.63,true);
+      }
+      for (const x of [-7.8,7.8]) {
+        addCylinder(workshopGroup,[x,2.05,-5.1],.09,.12,3.3,materials.darkWood,6);
+        addBox(workshopGroup,[x,3.84,-5.1],[.48,.62,.48],materials.glow);
+        const lamp = new THREE.PointLight('#ffd38c',.55,9,2); lamp.position.set(x,3.3,-5.1); workshopGroup.add(lamp);
+      }
+      for (let i=0;i<10;i++) {
+        const a=i*.73; const radius=13.8+(i%3)*.6; const x=Math.cos(a)*radius; const z=Math.sin(a)*radius;
+        makeTree(workshopGroup,x,.67,z,.6+(i%3)*.12,i%2===0);
+      }
+      // Oliver's work cart starts inside the bay and exits toward the island rail.
+      workshopTram.outer.position.set(0, 1.13, 2.4);
+      workshopTram.outer.rotation.y = Math.PI;
+    }
+    buildWorkshop();
+
+    const stops = { saltlight: 'Saltlight Terminus', mango: 'Mango Tide' };
+    const state = {
+      phase: 'ready', direction: 1, progress: 0, speed: 0, comfort: 94, passengers: 12, coins: 340,
+      streakSeconds: 0, streakCount: 0, lastBumpToast: -4, elapsed: 0, doorTarget: 0, doorValue: 0,
+      selectedPart: 'hearth', workProgress: 0, workElapsed: 0, workshopStep: 'idle', workshopExit: 0,
+      wind: false, view: 0, cameraBias: 0, subtitleTimer: 0, toastTimer: 0, boardTimer: 0, autoDeparture: 0,
+      arrivalSpeed: 0, bonus: 0, passengerBoarded: false, wheelAngle: 0
+    };
+    const held = { power: false, brake: false, left: false, right: false };
+    const routeT = () => state.direction > 0 ? state.progress : 1 - state.progress;
+    const stopFrom = () => state.direction > 0 ? stops.saltlight : stops.mango;
+    const stopTo = () => state.direction > 0 ? stops.mango : stops.saltlight;
+    function showToast(text, duration = 2600) {
+      $('toast').textContent = text; $('toast').classList.add('visible'); state.toastTimer = duration;
+    }
+    function showSubtitle(text, duration = 3000) {
+      $('subtitle').textContent = text; $('subtitle').classList.add('visible'); state.subtitleTimer = duration;
+    }
+    function updateHUD() {
+      const to = stopTo(), from = stopFrom();
+      $('route-destination').textContent = to;
+      $('origin-name').textContent = from;
+      $('destination-short').textContent = to;
+      $('comfort-origin').textContent = from;
+      $('comfort-destination').textContent = to;
+      $('passengers').textContent = `${state.passengers} / 16`;
+      $('coins').textContent = state.coins.toLocaleString('en-US');
+      $('streak').textContent = state.streakCount;
+      $('streak-label').textContent = state.streakCount ? `${state.streakCount} · nice and easy` : 'Ready for a smooth run';
+      $('comfort-number').textContent = `${Math.round(state.comfort)}%`;
+      $('comfort-fill').style.width = `${state.comfort}%`;
+      $('speed').textContent = Math.round(state.speed * 3.6).toString();
+      $('speed-fill').style.width = `${Math.min(100, state.speed / 18 * 100)}%`;
+      $('speed-caption').textContent = state.phase === 'ready' ? `Waiting at ${from}` : state.phase === 'driving' && state.progress > .82 ? `${to} ahead · ease off` : state.phase === 'arrived' || state.phase === 'doors' ? `Platform · ${to}` : state.phase === 'workshop' ? 'Oliver’s home island' : 'Coastal line · above the clouds';
+      $('weather-chip').classList.toggle('wind', state.wind);
+      $('weather-text').textContent = state.wind ? 'Crosswind' : 'Steady';
+      $('view-button').textContent = `View · ${state.view === 0 ? 'follow' : 'rail'}`;
+    }
+    function startTrip() {
+      if (state.phase !== 'ready' && state.phase !== 'arrived' && state.phase !== 'doors') return;
+      if (state.phase === 'arrived' || state.phase === 'doors') return;
+      $('title-card').classList.add('hidden'); state.phase = 'driving'; state.progress = 0; state.speed = Math.max(state.speed, .35);
+      showSubtitle('All aboard at Saltlight Terminus.'); showToast('A gentle start keeps everyone smiling.'); updateHUD();
+    }
+    function openDoors() {
+      if (state.phase !== 'arrived') return;
+      state.phase = 'doors'; state.doorTarget = 1; state.passengers = 0; state.boardTimer = 1.05; state.passengerBoarded = false;
+      $('station-heading').textContent = stopTo(); $('station-kicker').textContent = 'Platform voices · a little harbour in the clouds';
+      $('station-copy').textContent = 'Doors opening. Take your time; there are neighbours waiting to come aboard.';
+      $('station-action').hidden = true; $('station-secondary').hidden = false; $('station-card').classList.add('visible');
+      showSubtitle(`Doors opening · ${stopTo()}`); updateHUD();
+    }
+    function enterWorkshop() {
+      if (state.phase !== 'doors') return;
+      state.phase = 'workshop'; state.workshopStep = 'idle'; state.workProgress = 0; state.workElapsed = 0; state.workshopExit = 0;
+      worldGroup.visible = false; workshopGroup.visible = true; game.classList.add('workshop-hud');
+      $('station-card').classList.remove('visible'); $('workshop-card').classList.add('visible');
+      $('work-button').disabled = false; $('work-button').textContent = 'Fit the new parts'; $('work-stage-label').textContent = 'Ready for a little care'; $('work-percent').textContent = '0%'; $('work-fill').style.width = '0%';
+      $('workshop-foot').textContent = 'Sit back and watch the workshop.';
+      state.speed = 0; showSubtitle('Oliver’s home island · Cloudworks'); updateHUD();
+    }
+    function beginWorkshopFit() {
+      if (state.phase !== 'workshop' || state.workshopStep !== 'idle') return;
+      state.workshopStep = 'fitting'; state.workElapsed = 0; $('work-button').disabled = true;
+      $('workshop-foot').textContent = 'Sit back and watch the workshop.';
+    }
+    function departWorkshop() {
+      if (state.phase !== 'workshop' || state.workshopStep !== 'complete') return;
+      state.workshopStep = 'drivingOut'; state.workshopExit = 0; $('work-button').disabled = true;
+      $('work-button').textContent = 'All aboard';
+      $('workshop-foot').textContent = 'All aboard. Next stop: the Coastal Line.';
+      showSubtitle('All aboard. Next stop: the Coastal Line.');
+    }
+    function arrive() {
+      state.phase = 'arrived'; state.arrivalSpeed = state.speed; state.speed = 0; state.progress = 1;
+      state.doorTarget = 0; state.bonus = state.comfort >= 69 && state.arrivalSpeed <= 8 ? 75 : 0;
+      state.coins += 38 + state.bonus + Math.min(45, Math.floor(state.streakSeconds * 2));
+      $('station-heading').textContent = stopTo(); $('station-kicker').textContent = state.bonus ? 'A lovely, unhurried arrival' : 'Platform · coastal line';
+      $('station-copy').textContent = state.bonus ? `Smooth arrival +${state.bonus}. The island is just waking up; open the doors when you’re ready.` : 'The tram is safely at the platform. Open the doors for the waiting passengers.';
+      $('station-action').textContent = 'Open the doors'; $('station-action').hidden = false; $('station-secondary').hidden = true;
+      $('station-card').classList.add('visible');
+      showSubtitle(state.bonus ? `Arrived at ${stopTo()} · smooth arrival +${state.bonus}` : `Now arriving · ${stopTo()}`);
+      showToast(state.bonus ? `Smooth arrival · +${state.bonus} cloud coins` : 'Platform stop · take a breath before opening up.');
+      updateHUD();
+    }
+    function toggleView() {
+      state.view = 1 - state.view; updateHUD(); showToast(state.view ? 'Rail view · the line ahead' : 'Follow view · ride along with the tram', 1800);
+    }
+    function updateCartPose(dt, t) {
+      const u = THREE.MathUtils.clamp(routeT(), 0, 1); const pos = railPath.getPointAt(u);
+      const tangent = railPath.getTangentAt(u).normalize().multiplyScalar(state.direction);
+      tram.outer.position.copy(pos); tram.outer.quaternion.setFromUnitVectors(V3(0,0,1), tangent);
+      const accelFeel = (state.speed - (state.previousSpeed || 0)) / Math.max(.001, dt);
+      const cornerTangent = railPath.getTangentAt(THREE.MathUtils.clamp(u + state.direction * .008, 0, 1)).normalize();
+      const currentTangent = tangent;
+      const turn = currentTangent.x * cornerTangent.z - currentTangent.z * cornerTangent.x;
+      const windSway = state.wind ? Math.sin(t * 2.8) * .04 : 0;
+      tram.rig.rotation.z = THREE.MathUtils.damp(tram.rig.rotation.z, THREE.MathUtils.clamp(-turn * state.speed * .023 + windSway + state.cameraBias * .025, -.11, .11), 5, dt);
+      tram.rig.rotation.x = THREE.MathUtils.damp(tram.rig.rotation.x, THREE.MathUtils.clamp(accelFeel * .0018, -.055, .055), 4, dt);
+      state.doorValue = THREE.MathUtils.damp(state.doorValue, state.doorTarget, 5.5, dt);
+      for (const part of tram.doorParts) part.mesh.position.z = part.baseZ + part.sign * state.doorValue * .55;
+      state.wheelAngle += state.speed * dt * 1.4;
+      for (const wheel of tram.wheels) wheel.rotation.x = state.wheelAngle;
+      state.previousSpeed = state.speed;
+    }
+    const cameraTarget = new THREE.Vector3();
+    function updateCamera(dt) {
+      if (state.phase === 'workshop') {
+        camera.position.lerp(V3(21, 26, 24), 1 - Math.exp(-dt * 2.1)); camera.lookAt(0, 1.8, -.8); return;
+      }
+      const u = THREE.MathUtils.clamp(routeT(), 0, 1); const p = railPath.getPointAt(u); const tangent = railPath.getTangentAt(u).normalize().multiplyScalar(state.direction);
+      if (state.view === 1) {
+        cameraTarget.copy(p).addScaledVector(tangent, 2.7).add(V3(0, 2.05, 0));
+        const camPos = p.clone().addScaledVector(tangent, -1.1).add(V3(0, 2.08, 0));
+        camera.position.lerp(camPos, 1 - Math.exp(-dt * 3.8));
+        const look = p.clone().addScaledVector(tangent, 17).add(V3(0, 1.9, 0)); camera.lookAt(look); camera.fov = THREE.MathUtils.damp(camera.fov, 68, 3, dt); camera.updateProjectionMatrix();
+      } else {
+        const right = new THREE.Vector3().crossVectors(tangent, V3(0,1,0)).normalize();
+        const camPos = p.clone().addScaledVector(right, 19 + state.cameraBias * 3).add(V3(0, 13, 0)).addScaledVector(tangent, -20);
+        camera.position.lerp(camPos, 1 - Math.exp(-dt * 2.4));
+        const look = p.clone().addScaledVector(tangent, 8).add(V3(0, 1.7, 0)); camera.lookAt(look); camera.fov = THREE.MathUtils.damp(camera.fov, 44, 3, dt); camera.updateProjectionMatrix();
+      }
+    }
+
+    function updateDriving(dt) {
+      if (state.phase !== 'driving') return;
+      const oldSpeed = state.speed;
+      if (held.power) state.speed += 4.25 * dt;
+      else state.speed -= .62 * dt;
+      if (held.brake) state.speed -= 8.5 * dt;
+      state.speed = THREE.MathUtils.clamp(state.speed, 0, 18);
+      const acceleration = (state.speed - oldSpeed) / Math.max(dt, .001);
+      const u = routeT();
+      const a = railPath.getTangentAt(THREE.MathUtils.clamp(u - .013, 0, 1)).normalize();
+      const b = railPath.getTangentAt(THREE.MathUtils.clamp(u + .013, 0, 1)).normalize();
+      const bend = Math.acos(THREE.MathUtils.clamp(a.dot(b), -1, 1));
+      const windSection = (u > .2 && u < .37) || (u > .67 && u < .8);
+      state.wind = windSection && Math.sin(state.elapsed * .9 + u * 22) > -.15;
+      let bump = Math.max(0, acceleration - 3.4) * .62 + Math.max(0, -acceleration - 5.5) * .6;
+      if (bend > .105 && state.speed > 10) bump += (state.speed - 10) * .17;
+      if (state.wind && state.speed > 8) bump += (state.speed - 8) * .09;
+      state.comfort = THREE.MathUtils.clamp(state.comfort - bump * dt + (bump < .2 ? .65 * dt : 0), 0, 100);
+      if (bump < .24) {
+        state.streakSeconds += dt; state.streakCount = Math.floor(state.streakSeconds / 2.2);
+      } else if (bump > .75) {
+        state.streakSeconds = 0; state.streakCount = 0;
+        if (state.elapsed - state.lastBumpToast > 3.8) {
+          showToast('Streak broken. Find your balance to rebuild your tips.', 3200); state.lastBumpToast = state.elapsed;
+        }
+      }
+      state.progress += state.speed * dt / routeLength;
+      if (state.progress >= 1) arrive();
+      updateHUD();
+    }
+
+    function updateWorkshop(dt) {
+      if (state.phase !== 'workshop') return;
+      if (state.workshopStep === 'fitting') {
+        state.workElapsed += dt; state.workProgress = Math.min(1, state.workElapsed / 5.2);
+        const label = state.workElapsed < 1.8 ? 'Hearth leaves · Lifting the old part' : state.workElapsed < 3.55 ? 'Little Companion · Preparing the tram' : 'Sit back and watch the workshop.';
+        $('work-stage-label').textContent = label; $('work-percent').textContent = `${Math.round(state.workProgress * 100)}%`; $('work-fill').style.width = `${state.workProgress * 100}%`;
+        if (state.workProgress >= 1) {
+          state.workshopStep = 'complete'; setUpgrade(tram, true, state.selectedPart); setUpgrade(workshopTram, true, state.selectedPart);
+          $('work-button').disabled = false; $('work-button').textContent = 'Roll out to the line';
+          const fittedPart = state.selectedPart === 'hearth' ? 'Hearth leaves' : 'Little Companion';
+          $('work-stage-label').textContent = `${fittedPart} · Ready`;
+          $('workshop-foot').textContent = state.selectedPart === 'hearth' ? 'A softer green canopy, gathered by hand, with a living garland of leaves.' : 'Your tram has a brighter canopy, a rack for parcels, and two warm lanterns.';
+          showToast('A little brighter for the next crossing.');
+        }
+      } else if (state.workshopStep === 'drivingOut') {
+        state.workshopExit += dt; workshopTram.outer.position.z = 2.4 + state.workshopExit * 2.6;
+        workshopTram.outer.position.x = Math.sin(state.workshopExit * 1.5) * .2;
+        if (state.workshopExit > 2.3) {
+          state.direction *= -1; state.progress = 0; state.speed = 3.8; state.phase = 'driving'; state.doorTarget = 0;
+          state.streakSeconds = 0; state.streakCount = 0; state.wind = false;
+          workshopGroup.visible = false; worldGroup.visible = true; game.classList.remove('workshop-hud'); $('workshop-card').classList.remove('visible');
+          state.autoDeparture = 1.2; showSubtitle('All aboard. Next stop: the Coastal Line.'); showToast('The fitted tram joins the coastal rails.', 2300); updateHUD();
+        }
+      }
+    }
+
+    function updateAmbient(dt) {
+      for (let i = 0; i < cloudPuffs.length; i++) {
+        const cloud = cloudPuffs[i]; cloud.bank.position.x = cloud.baseX + Math.sin(state.elapsed * .065 + cloud.seed) * 1.2;
+        cloud.bank.position.z = cloud.baseZ + Math.cos(state.elapsed * .048 + cloud.seed) * .65;
+      }
+      if (state.subtitleTimer > 0) { state.subtitleTimer -= dt * 1000; if (state.subtitleTimer <= 0) $('subtitle').classList.remove('visible'); }
+      if (state.toastTimer > 0) { state.toastTimer -= dt * 1000; if (state.toastTimer <= 0) $('toast').classList.remove('visible'); }
+      if (state.boardTimer > 0) {
+        state.boardTimer -= dt;
+        if (state.boardTimer <= 0 && state.phase === 'doors' && !state.passengerBoarded) {
+          state.passengers = 8; state.passengerBoarded = true; showSubtitle('Please wait · a few neighbours are boarding.'); updateHUD();
+        }
+      }
+    }
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), .18); state.elapsed += dt;
+      if (state.autoDeparture > 0) { state.autoDeparture -= dt; if (state.autoDeparture <= 0) showToast('Ease onto the power for a comfortable ride.', 2100); }
+      updateDriving(dt); updateWorkshop(dt); updateCartPose(dt, state.elapsed); updateCamera(dt); updateAmbient(dt);
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    function setHeld(key, value) { held[key] = value; const button = key === 'power' ? $('power-button') : key === 'brake' ? $('brake-button') : null; if (button) button.classList.toggle('held', value); }
+    function bindHold(buttonId, key) {
+      const button = $(buttonId);
+      button.addEventListener('pointerdown', (event) => { event.preventDefault(); button.setPointerCapture?.(event.pointerId); setHeld(key, true); if (key === 'power' && state.phase === 'ready') startTrip(); });
+      const release = () => setHeld(key, false);
+      button.addEventListener('pointerup', release); button.addEventListener('pointercancel', release); button.addEventListener('lostpointercapture', release);
+      button.addEventListener('contextmenu', event => event.preventDefault());
+    }
+    bindHold('power-button', 'power'); bindHold('brake-button', 'brake');
+    $('begin-button').addEventListener('click', startTrip);
+    $('station-action').addEventListener('click', openDoors);
+    $('station-secondary').addEventListener('click', enterWorkshop);
+    $('work-button').addEventListener('click', () => state.workshopStep === 'idle' ? beginWorkshopFit() : departWorkshop());
+    $('view-button').addEventListener('click', toggleView);
+    document.querySelectorAll('.part-option').forEach(button => button.addEventListener('click', () => {
+      if (state.workshopStep !== 'idle') return;
+      state.selectedPart = button.dataset.part;
+      document.querySelectorAll('.part-option').forEach(option => { const active = option === button; option.classList.toggle('selected', active); option.setAttribute('aria-pressed', active ? 'true' : 'false'); });
+      $('workshop-foot').textContent = state.selectedPart === 'hearth' ? 'Sit back and watch the workshop.' : 'A little luggage rack, a pair of lanterns, and some trailing leaves.';
+    }));
+    window.addEventListener('keydown', event => {
+      const key = event.key.toLowerCase();
+      if (['w','s','arrowleft','arrowright',' '].includes(key)) event.preventDefault();
+      if (key === 'w' || key === 'arrowup') { setHeld('power', true); if (state.phase === 'ready') startTrip(); }
+      if (key === 's' || key === 'arrowdown') setHeld('brake', true);
+      if (key === 'arrowleft' || key === 'a') { held.left = true; state.cameraBias = THREE.MathUtils.clamp(state.cameraBias - .08, -1, 1); }
+      if (key === 'arrowright' || key === 'd') { held.right = true; state.cameraBias = THREE.MathUtils.clamp(state.cameraBias + .08, -1, 1); }
+      if (key === 'v' && !event.repeat) toggleView();
+      if ((key === ' ' || key === 'e') && !event.repeat) { if (state.phase === 'arrived') openDoors(); else if (state.phase === 'doors') enterWorkshop(); }
+    });
+    window.addEventListener('keyup', event => {
+      const key = event.key.toLowerCase();
+      if (key === 'w' || key === 'arrowup') setHeld('power', false);
+      if (key === 's' || key === 'arrowdown') setHeld('brake', false);
+      if (key === 'arrowleft' || key === 'a') held.left = false;
+      if (key === 'arrowright' || key === 'd') held.right = false;
+    });
+    window.addEventListener('blur', () => { setHeld('power', false); setHeld('brake', false); held.left = held.right = false; });
+    window.addEventListener('resize', () => {
+      const w = window.innerWidth, h = window.innerHeight; camera.aspect = w / h; camera.updateProjectionMatrix();
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25)); renderer.setSize(w, h);
+    });
+
+    // Start parked right beside the Saltlight platform and let the camera settle on the scene.
+    tram.outer.position.copy(railPath.getPointAt(0));
+    tram.outer.quaternion.setFromUnitVectors(V3(0,0,1), railPath.getTangentAt(0).normalize());
+    camera.position.set(11, 18, 34); camera.lookAt(-3, 5, -2);
+    updateHUD();
+  </script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+{
+  "desktop": {
+    "title": "Cloudline · A little ride above the sea",
+    "width": 1600,
+    "scrollWidth": 1600,
+    "canvas": true,
+    "buttons": [
+      {
+        "text": "View · follow",
+        "width": 127,
+        "height": 45
+      },
+      {
+        "text": "↑PowerHold W",
+        "width": 104,
+        "height": 72
+      },
+      {
+        "text": "↓BrakeHold S",
+        "width": 104,
+        "height": 72
+      },
+      {
+        "text": "Open the doors",
+        "width": 374,
+        "height": 47
+      },
+      {
+        "text": "Hearth leavesA softer green canopy, gathered by hand.",
+        "width": 164,
+        "height": 83
+      },
+      {
+        "text": "Little CompanionA luggage rack, lanterns and trailing vines.",
+        "width": 164,
+        "height": 83
+      },
+      {
+        "text": "Fit the new parts",
+        "width": 337,
+        "height": 47
+      },
+      {
+        "text": "Depart Saltlight",
+        "width": 255,
+        "height": 47
+      }
+    ],
+    "errors": []
+  },
+  "mobile": {
+    "title": "Cloudline · A little ride above the sea",
+    "width": 390,
+    "scrollWidth": 390,
+    "canvas": true,
+    "buttons": [
+      {
+        "text": "View · follow",
+        "width": 50,
+        "height": 39
+      },
+      {
+        "text": "↑PowerHold W",
+        "width": 86,
+        "height": 75
+      },
+      {
+        "text": "↓BrakeHold S",
+        "width": 86,
+        "height": 75
+      },
+      {
+        "text": "Open the doors",
+        "width": 320,
+        "height": 47
+      },
+      {
+        "text": "Hearth leavesA softer green canopy, gathered by hand.",
+        "width": 161,
+        "height": 70
+      },
+      {
+        "text": "Little CompanionA luggage rack, lanterns and trailing vines.",
+        "width": 161,
+        "height": 70
+      },
+      {
+        "text": "Fit the new parts",
+        "width": 330,
+        "height": 47
+      },
+      {
+        "text": "Depart Saltlight",
+        "width": 255,
+        "height": 47
+      }
+    ],
+    "errors": []
+  }
+}
