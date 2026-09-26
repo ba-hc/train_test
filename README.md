@@ -1,16 +1,4 @@
-# Benchmark Three.js — Codex Desktop, OMP Fast y OMP Custom V1–V4
-
-## Actualización: OMP Custom V4 (26-09-2026)
-
-| Entrega | Archivo |
-| --- | --- |
-| HTML bruto medido, sin refinamiento posterior | [`OMP_CUSTOM_V4.html`](./OMP_CUSTOM_V4.html) |
-| Datos de la sesión | [`SESSION_INFO_V4.md`](./SESSION_INFO_V4.md) · [JSON](./OMP_CUSTOM_V4_session.json) |
-| Comparación y verificación externa | [`benchmark_V3_V4.md`](./benchmark_V3_V4.md) · [JSON](./OMP_CUSTOM_V4_verification.json) |
-| Capturas | [Escritorio](./OMP_CUSTOM_V4_desktop.png) · [Móvil](./OMP_CUSTOM_V4_mobile.png) |
-| Reproducibilidad | [Prompt original](./benchmark_prompt.txt) · [Criterios V3–V4](./benchmark_acceptance.md) |
-
-**Resultado:** V4 tardó 40,4 min, con 104 solicitudes, 103 herramientas, 11,54 M tokens y USD 0,3943 registrados. Frente a V3 bruto, empeoró en tiempo (+49,6 %), tokens (+43,7 %) y coste (+17,2 %). La prueba externa encontró el taller en Mango Tide, una sola acción para las dos mejoras y controles móviles menores de 44 px. **V3 refinado sigue siendo la entrega recomendada.** El HTML de V4 se conserva sin editar para que estos resultados puedan auditarse.
+# Benchmark Three.js — Codex Desktop, OMP Fast y OMP Custom V1–V3
 
 ## Actualización: OMP Custom V3 (26-09-2026)
 
