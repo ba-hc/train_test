@@ -1,0 +1,104 @@
+{
+  "initial": {
+    "phase": "driving",
+    "direction": 1,
+    "station": [
+      "Saltlight Terminus",
+      "Mango Tide"
+    ],
+    "canvas": true
+  },
+  "midrouteWorkshop": false,
+  "speedAfterPower": 2.34,
+  "speedAfterBrake": 0,
+  "beforeCamera": 0,
+  "afterCamera": 1,
+  "mango": {
+    "phase": "arrived",
+    "doorPhase": 2,
+    "stop": "Mango Tide",
+    "aboard": 10,
+    "newAboard": 10,
+    "workshopShown": false,
+    "nextShown": true
+  },
+  "mangoWorkshopGuard": true,
+  "returnTrip": {
+    "phase": "driving",
+    "direction": -1,
+    "destination": "Saltlight Terminus"
+  },
+  "saltlight": {
+    "phase": "arrived",
+    "doorPhase": 2,
+    "stop": "Saltlight Terminus",
+    "aboard": 9,
+    "newAboard": 9,
+    "workshopShown": true,
+    "nextShown": true
+  },
+  "workshop": {
+    "phase": "workshop",
+    "title": "A little tune-up",
+    "upgradeApplied": false
+  },
+  "firstUpgrade": {
+    "step": 1,
+    "progress": "50%",
+    "vinesVisible": true,
+    "rackVisible": false,
+    "button": "Fit Little Companion ↗"
+  },
+  "upgrade": {
+    "phase": "workshop",
+    "applied": true,
+    "progress": "100%",
+    "rackVisible": true
+  },
+  "rollout": {
+    "phase": "driving",
+    "direction": 1,
+    "destination": "Mango Tide"
+  },
+  "mobileLayout": {
+    "viewport": [
+      390,
+      844
+    ],
+    "scrollWidth": 390,
+    "power": {
+      "x": 153,
+      "y": 712,
+      "w": 44,
+      "h": 44
+    },
+    "brake": {
+      "x": 202,
+      "y": 712,
+      "w": 44,
+      "h": 44
+    },
+    "speed": {
+      "x": 27,
+      "y": 714,
+      "w": 57,
+      "h": 24
+    },
+    "comfort": {
+      "x": 27,
+      "y": 765,
+      "w": 336,
+      "h": 53
+    }
+  },
+  "mobileStation": {
+    "visible": "visible",
+    "button": {
+      "x": 39.968894958496094,
+      "y": 419.1768798828125,
+      "w": 157.71914672851562,
+      "h": 44.00885009765625
+    }
+  },
+  "errors": []
+}

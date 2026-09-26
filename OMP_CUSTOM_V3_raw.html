@@ -1,0 +1,758 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#253c4d">
+<title>Cloudline — A little ride above the sea</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light;--ink:#263c43;--muted:#788783;--cream:#f6f0de;--sage:#617966;--leaf:#88a878;--gold:#e6bd74;--coral:#c97058;--glass:rgba(248,244,228,.9);--soft-shadow:0 18px 55px rgba(30,52,59,.16);font-family:'DM Sans','Trebuchet MS',sans-serif;font-synthesis:none;text-rendering:optimizeLegibility}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#5c6881}
+body{min-height:100dvh;color:var(--ink);user-select:none;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit}
+#game{position:fixed;inset:0;overflow:hidden;background:linear-gradient(180deg,#7283a0,#d28d78 65%,#47758a)}
+#world{position:absolute;inset:0;width:100%;height:100%;display:block}
+#shade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(17,41,57,.2),transparent 20%,transparent 67%,rgba(26,51,58,.23));}
+#grain{position:fixed;inset:0;pointer-events:none;opacity:.11;z-index:1;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.84' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.24'/%3E%3C/svg%3E");mix-blend-mode:soft-light}
+.hud{position:absolute;z-index:2;inset:0;pointer-events:none;padding:clamp(14px,2.1vw,30px);display:flex;flex-direction:column;justify-content:space-between}
+.topline{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.route-card,.wallet,.weather-pill,.station-card,.workshop-card,.bottom-shell{pointer-events:auto;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.route-card{min-width:min(380px,60vw);padding:5px;border-radius:23px;background:rgba(245,239,219,.31);box-shadow:0 9px 28px rgba(29,53,63,.13);}
+.route-core{display:flex;align-items:center;gap:13px;padding:12px 17px 12px 13px;border-radius:19px;background:var(--glass);box-shadow:inset 0 1px rgba(255,255,255,.8)}
+.mark{width:37px;height:37px;display:grid;place-items:center;flex:none;border-radius:13px;background:#dce4cf;color:#526c5b}
+.mark svg{width:24px;height:24px}
+.route-meta{display:flex;flex-direction:column;gap:4px;min-width:0}
+.eyebrow{font-size:9px;line-height:1.15;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#788676}
+.destination-line{display:flex;align-items:baseline;gap:8px;white-space:nowrap;font-family:'Fraunces',Georgia,serif;font-size:19px;line-height:1.05;letter-spacing:-.035em;color:#30464a}
+.route-arrow{font-family:'DM Sans',sans-serif;font-size:12px;color:#b58a4f}
+.right-status{display:flex;align-items:center;gap:9px}
+.wallet{display:flex;align-items:center;gap:8px;padding:11px 14px;border-radius:18px;background:var(--glass);box-shadow:0 9px 28px rgba(29,53,63,.1),inset 0 1px rgba(255,255,255,.8);font-size:12px;font-weight:700;white-space:nowrap}
+.wallet .spark{color:#c58b48;font-size:16px}
+.weather-pill{display:flex;align-items:center;gap:9px;padding:10px 14px;border-radius:18px;background:rgba(247,241,223,.82);box-shadow:0 8px 24px rgba(29,53,63,.1);font-size:11px;font-weight:600;color:#52665f;white-space:nowrap}
+.weather-icon{width:18px;height:18px;color:#cf9b50}
+.streak-count{padding-left:9px;border-left:1px solid rgba(50,73,70,.16);color:#9a6d43;font-weight:700}
+.toast{position:absolute;left:50%;top:22%;transform:translate(-50%,-8px);padding:11px 18px;border-radius:999px;background:rgba(40,60,63,.84);color:#fff7e5;font-size:12px;font-weight:600;letter-spacing:.01em;box-shadow:0 10px 30px rgba(23,43,48,.18);opacity:0;transition:opacity .45s cubic-bezier(.22,.68,0,1.1),transform .6s cubic-bezier(.22,.68,0,1.1);white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.station-card{position:absolute;left:50%;top:37%;transform:translate(-50%,14px) scale(.985);width:min(390px,calc(100vw - 32px));padding:5px;border-radius:27px;background:rgba(245,239,219,.43);opacity:0;visibility:hidden;transition:opacity .55s cubic-bezier(.22,.68,0,1.1),transform .7s cubic-bezier(.22,.68,0,1.1),visibility .55s;box-shadow:0 22px 70px rgba(24,47,54,.18)}
+.station-card.visible{opacity:1;visibility:visible;transform:translate(-50%,0) scale(1)}
+.card-core{padding:22px 23px 20px;border-radius:22px;background:rgba(249,245,230,.94);box-shadow:inset 0 1px rgba(255,255,255,.9)}
+.station-card .eyebrow{margin-bottom:8px}
+.station-title{font-family:'Fraunces',Georgia,serif;font-size:29px;line-height:1.04;letter-spacing:-.04em;margin:0;color:#2c4549}
+.station-copy{font-size:12px;line-height:1.55;color:#70807a;margin:9px 0 17px;min-height:19px}
+.pill-button{border:0;border-radius:999px;padding:11px 14px 11px 17px;display:inline-flex;align-items:center;justify-content:center;gap:14px;background:#5b765f;color:#fff8e6;font-size:12px;font-weight:700;letter-spacing:.015em;cursor:pointer;transition:transform .45s cubic-bezier(.22,.68,0,1.1),background .5s cubic-bezier(.22,.68,0,1.1),box-shadow .5s cubic-bezier(.22,.68,0,1.1);box-shadow:0 7px 16px rgba(67,96,70,.17)}
+.pill-button:hover{transform:translateY(-2px);background:#49654f;box-shadow:0 10px 20px rgba(67,96,70,.23)}
+.pill-button:active{transform:scale(.98)}
+.pill-button .button-icon{width:27px;height:27px;margin:-5px -8px -5px 0;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.17);font-size:14px;transition:transform .5s cubic-bezier(.22,.68,0,1.1)}
+.pill-button:hover .button-icon{transform:translate(2px,-1px) scale(1.05)}
+.pill-button.secondary{background:#e9e2cf;color:#54655c;box-shadow:none}
+button[hidden]{display:none!important}
+.station-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.workshop-card{position:absolute;left:clamp(18px,5vw,74px);top:50%;transform:translateY(-44%) translateX(-10px) scale(.99);width:min(355px,calc(100vw - 36px));padding:6px;border-radius:28px;background:rgba(245,239,219,.45);opacity:0;visibility:hidden;transition:opacity .55s cubic-bezier(.22,.68,0,1.1),transform .7s cubic-bezier(.22,.68,0,1.1),visibility .55s;box-shadow:0 22px 70px rgba(24,47,54,.2)}
+.workshop-card.visible{opacity:1;visibility:visible;transform:translateY(-50%) translateX(0) scale(1)}
+.workshop-inner{padding:23px 23px 21px;border-radius:22px;background:rgba(249,245,230,.96);box-shadow:inset 0 1px rgba(255,255,255,.9)}
+.workshop-title{font:500 30px/1 'Fraunces',Georgia,serif;letter-spacing:-.04em;margin:7px 0 6px;color:#2c4549}
+.workshop-subtitle{margin:0;color:#728079;font-size:11px;line-height:1.5}
+.parts{display:grid;gap:8px;margin:19px 0 16px}
+.part-row{display:flex;align-items:center;gap:11px;padding:10px 11px;border-radius:15px;background:rgba(226,229,211,.62);transition:background .4s cubic-bezier(.22,.68,0,1.1),transform .4s cubic-bezier(.22,.68,0,1.1)}
+.part-row.active{background:#e4d5aa;transform:translateX(3px)}
+.part-icon{width:31px;height:31px;display:grid;place-items:center;border-radius:11px;background:#f3edd9;color:#77865f;font-size:17px}
+.part-label{font-size:11px;font-weight:700;color:#40554d}
+.part-detail{font-size:9px;margin-top:3px;color:#819087}
+.progress-wrap{height:7px;border-radius:99px;background:#dedecf;overflow:hidden;margin:12px 0 8px}
+.progress-fill{height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,#809775,#d6ae66);transition:width .35s cubic-bezier(.22,.68,0,1.1)}
+.progress-caption{display:flex;justify-content:space-between;gap:10px;color:#8b9388;font-size:9px}
+.workshop-cta{margin-top:15px;width:100%;justify-content:space-between}
+.hud-bottom{width:100%;display:flex;justify-content:center;pointer-events:none}
+.bottom-shell{width:min(1040px,100%);padding:5px;border-radius:27px;background:rgba(245,239,219,.44);box-shadow:0 17px 48px rgba(24,47,54,.19)}
+.bottom-core{display:grid;grid-template-columns:200px minmax(220px,1fr) 184px;align-items:center;gap:23px;padding:14px 19px;border-radius:22px;background:rgba(249,245,230,.94);box-shadow:inset 0 1px rgba(255,255,255,.9)}
+.speed-side{display:flex;align-items:center;gap:14px;min-width:0}
+.speed-number{min-width:74px}
+.speed-value{font:500 32px/.88 'Fraunces',Georgia,serif;letter-spacing:-.06em;color:#30494c;font-variant-numeric:tabular-nums}
+.speed-units{margin-top:5px;font-size:8px;letter-spacing:.17em;text-transform:uppercase;color:#869089}
+.speed-meter{width:86px}
+.meter-track{height:5px;border-radius:99px;background:#dfe1d2;overflow:hidden}
+.meter-fill{height:100%;width:0;border-radius:inherit;background:#78916d;transition:width .15s linear}
+.meter-label{display:flex;justify-content:space-between;margin-top:6px;color:#929a8f;font-size:8px;letter-spacing:.06em}
+.controls{display:flex;align-items:center;gap:7px;margin-left:4px}
+.control-btn{width:42px;height:42px;border:0;border-radius:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:#e4e7d8;color:#5a6d5b;cursor:pointer;touch-action:none;transition:transform .4s cubic-bezier(.22,.68,0,1.1),background .4s cubic-bezier(.22,.68,0,1.1),color .4s cubic-bezier(.22,.68,0,1.1)}
+.control-btn span:first-child{font-size:15px;line-height:1}
+.control-btn small{font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.control-btn.power{background:#627f66;color:#fff8e8}
+.control-btn.brake{background:#eadcc7;color:#9e6f52}
+.control-btn.held,.control-btn:active{transform:scale(.94) translateY(1px);filter:saturate(1.18)}
+.route-comfort{min-width:0;padding:0 19px;border-left:1px solid rgba(78,101,87,.13);border-right:1px solid rgba(78,101,87,.13)}
+.comfort-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:11px}
+.comfort-title{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;color:#596c60}
+.comfort-title svg{width:15px;height:15px;color:#849c74}
+.comfort-value{font-size:9px;color:#8a9288;white-space:nowrap}
+.route-meter{position:relative;height:4px;margin:0 9px 9px;border-radius:99px;background:#e2e2d3}
+.route-progress{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:99px;background:#879d75;transition:width .2s linear}
+.route-dot{position:absolute;left:0;top:50%;width:15px;height:15px;border:3px solid #f9f5e6;border-radius:50%;background:#718b6b;box-shadow:0 1px 5px rgba(37,63,52,.2);transform:translate(-50%,-50%);transition:left .2s linear}
+.station-points{display:flex;justify-content:space-between;color:#8d958b;font-size:8px;letter-spacing:.03em}
+.station-points strong{font-weight:700;color:#607367}
+.passenger-box{display:flex;align-items:center;gap:10px;justify-content:flex-end}
+.passenger-icon{width:38px;height:38px;border-radius:14px;background:#e6e4d1;color:#687f68;display:grid;place-items:center}
+.passenger-icon svg{width:20px;height:20px}
+.passenger-count{font:500 20px/.95 'Fraunces',Georgia,serif;color:#40574e;font-variant-numeric:tabular-nums}
+.passenger-label{margin-top:4px;font-size:8px;color:#879087;letter-spacing:.07em;text-transform:uppercase}
+.key-hint{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);padding:6px 11px;border-radius:99px;background:rgba(42,62,63,.58);color:rgba(255,248,226,.88);font-size:9px;letter-spacing:.045em;white-space:nowrap}
+.key-hint kbd{font:600 9px 'DM Sans',sans-serif;color:#fff5d9}
+.workshop-view .weather-pill{opacity:.65}
+@media(max-width:760px){
+ .hud{padding:12px;padding-bottom:max(12px,env(safe-area-inset-bottom))}
+ .topline{gap:6px;align-items:flex-start}
+ .route-card{min-width:0;width:min(310px,calc(100vw - 143px));border-radius:19px}
+ .route-core{gap:9px;padding:9px 10px;border-radius:15px}
+ .mark{width:31px;height:31px;border-radius:11px}
+ .mark svg{width:20px;height:20px}
+ .eyebrow{font-size:8px}
+ .destination-line{font-size:15px;gap:5px}
+ .destination-line #originName,.destination-line .route-arrow{display:none}
+ .right-status{gap:5px;flex-wrap:wrap;justify-content:flex-end;max-width:135px}
+ .weather-pill{padding:8px 9px;gap:5px;font-size:9px;border-radius:14px}
+ .weather-icon{width:15px;height:15px}
+ .wallet{padding:8px 10px;gap:5px;font-size:10px;border-radius:14px}
+ .streak-count{padding-left:6px}
+ .bottom-shell{border-radius:22px;padding:4px}
+ .bottom-core{grid-template-columns:1fr auto;gap:9px 12px;padding:11px 11px 10px;border-radius:18px}
+ .speed-side{gap:9px}
+ .speed-number{min-width:57px}
+ .speed-value{font-size:27px}
+ .speed-units{font-size:7px}
+ .speed-meter{width:min(74px,16vw)}
+ .controls{gap:5px;margin-left:0}
+ .control-btn{width:37px;height:38px;border-radius:13px}
+ .control-btn span:first-child{font-size:13px}
+ .control-btn small{font-size:6px}
+ .route-comfort{grid-row:2;grid-column:1 / -1;order:3;border-left:0;border-right:0;border-top:1px solid rgba(78,101,87,.13);padding:9px 2px 0}
+ .comfort-head{margin-bottom:8px}
+ .comfort-title{font-size:9px}
+ .comfort-value{font-size:8px}
+ .station-points{font-size:7px}
+ .route-meter{height:3px;margin-bottom:7px}
+ .route-dot{width:12px;height:12px;border-width:2px}
+ .passenger-box{gap:7px}
+ .passenger-icon{width:31px;height:31px;border-radius:11px}
+ .passenger-icon svg{width:17px;height:17px}
+ .passenger-count{font-size:18px}
+ .passenger-label{font-size:7px}
+ .key-hint{display:none}
+ .toast{top:25%;font-size:10px;max-width:calc(100vw - 26px);white-space:normal;text-align:center}
+ .station-card{top:36%}
+ .workshop-card{left:12px;top:auto;bottom:175px;transform:translateY(8px) scale(.99);width:min(335px,calc(100vw - 24px))}
+ .workshop-card.visible{transform:translateY(0) scale(1)}
+ .workshop-inner{padding:17px;border-radius:19px}
+ .workshop-title{font-size:26px}
+ .parts{gap:6px;margin:12px 0}
+ .part-row{padding:7px 9px}
+ .station-title{font-size:26px}
+ .card-core{padding:19px}
+}
+@media(max-height:590px) and (min-width:761px){.hud{padding:12px 18px}.bottom-core{padding:10px 16px}.station-card{top:29%}.workshop-card{top:46%}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}}
+</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}
+</script>
+</head>
+<body>
+<div id="game">
+ <canvas id="world" aria-label="A tram winding between floating islands"></canvas>
+ <div id="shade"></div>
+ <div id="grain"></div>
+ <main class="hud" id="hud">
+  <div class="topline">
+   <div class="route-card"><div class="route-core">
+    <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 15.5c2.8-5 5.8-7.5 9.2-7.5 2.1 0 4.1 1 6.8 3.5M5 18h14M7 15.5l-1 2.5m11-2.5 1 2.5" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/><circle cx="8.5" cy="12.2" r=".85" fill="currentColor"/><circle cx="14.2" cy="9.1" r=".85" fill="currentColor"/></svg></div>
+    <div class="route-meta"><div class="eyebrow">Cloudline · Coastal line</div><div class="destination-line"><span id="originName">Saltlight Terminus</span><span class="route-arrow">→</span><span id="destinationName">Mango Tide</span></div></div>
+   </div></div>
+   <div class="right-status">
+    <div class="weather-pill"><svg class="weather-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 9h11a2.4 2.4 0 1 0-2.4-2.4M2.5 13h16a2 2 0 1 1-2 2M5 17h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span id="weatherText">Steady</span></div>
+    <div class="wallet"><span class="spark">✦</span><span><span id="coins">420</span> <span style="font-weight:500;color:#859087">tips</span></span><span class="streak-count">×<span id="streak">2</span></span></div>
+   </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <section class="station-card" id="stationCard" aria-live="polite">
+   <div class="card-core"><div class="eyebrow" id="arrivalEyebrow">A little island stop</div><h1 class="station-title" id="arrivalTitle">Mango Tide</h1><p class="station-copy" id="arrivalCopy">Take a breath. The platform is waiting.</p>
+    <div class="station-actions"><button class="pill-button" id="doorsButton" type="button">Open the doors <span class="button-icon">↗</span></button><button class="pill-button secondary" id="continueButton" type="button" hidden>Next crossing <span class="button-icon">→</span></button><button class="pill-button secondary" id="visitWorkshopButton" type="button" hidden>Oliver's workshop <span class="button-icon">↗</span></button></div>
+   </div>
+  </section>
+  <section class="workshop-card" id="workshopCard" aria-label="Oliver Cloudworks workshop">
+   <div class="workshop-inner"><div class="eyebrow">Oliver Cloudworks · Oliver's home island</div><h2 class="workshop-title">A little tune-up</h2><p class="workshop-subtitle">Hearth leaves, polished brass, and a roof made for long crossings.</p>
+    <div class="parts"><div class="part-row" id="partOne"><div class="part-icon">⌁</div><div><div class="part-label">Hearth leaves</div><div class="part-detail" id="partOneDetail">Lifting the old part</div></div></div><div class="part-row" id="partTwo"><div class="part-icon">✳</div><div><div class="part-label">Little Companion</div><div class="part-detail" id="partTwoDetail">Preparing the tram</div></div></div></div>
+    <div class="progress-wrap"><div class="progress-fill" id="workProgress"></div></div><div class="progress-caption"><span id="workCaption">Sit back and watch the workshop.</span><span id="workPercent">0%</span></div>
+    <button class="pill-button workshop-cta" id="workshopButton" type="button">Start the fitting <span class="button-icon">↗</span></button>
+    <button class="pill-button workshop-cta" id="rollOutButton" type="button" hidden>All aboard <span class="button-icon">→</span></button>
+   </div>
+  </section>
+  <div class="hud-bottom">
+   <div class="bottom-shell">
+    <div class="bottom-core">
+     <div class="speed-side">
+      <div class="speed-number"><div class="speed-value" id="speedValue">0</div><div class="speed-units">km / h</div></div>
+      <div class="speed-meter"><div class="meter-track"><div class="meter-fill" id="speedFill"></div></div><div class="meter-label"><span>REST</span><span>95</span></div></div>
+      <div class="controls"><button class="control-btn power" id="powerButton" type="button" aria-label="Hold to accelerate"><span>↑</span><small>Power</small></button><button class="control-btn brake" id="brakeButton" type="button" aria-label="Hold to brake"><span>↓</span><small>Brake</small></button></div>
+     </div>
+     <div class="route-comfort">
+      <div class="comfort-head"><div class="comfort-title"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 20s-7-4.2-7-10.3A3.8 3.8 0 0 1 12 7a3.8 3.8 0 0 1 7 2.7C19 15.8 12 20 12 20Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 12.8c1.3-.4 2.5-.4 3.9 0 1.3.4 2.6.4 4 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg><span>Leg comfort</span></div><div class="comfort-value" id="comfortLabel">Easy going · 100%</div></div>
+      <div class="route-meter"><div class="route-progress" id="routeProgress"></div><div class="route-dot" id="routeDot"></div></div><div class="station-points"><span id="routeStart">Saltlight Terminus</span><strong>THE CLOUDLINE</strong><span id="routeEnd">Mango Tide</span></div>
+     </div>
+     <div class="passenger-box"><div class="passenger-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="9" cy="8" r="2.4" stroke="currentColor" stroke-width="1.5"/><circle cx="16.3" cy="9" r="1.9" stroke="currentColor" stroke-width="1.4"/><path d="M4.7 18.5c.3-3 1.7-4.7 4.3-4.7s4.1 1.7 4.3 4.7m.4-.1c.2-2.4 1.3-3.8 3.4-3.8 1.2 0 2.1.5 2.7 1.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><div class="passenger-count"><span id="passengerCount">12</span><span style="font-size:13px;color:#9da294">/16</span></div><div class="passenger-label">Aboard</div></div></div>
+    </div>
+   </div>
+   <div class="key-hint"><kbd>W</kbd> power &nbsp; <kbd>S</kbd> brake &nbsp; <kbd>← →</kbd> trim &nbsp; <kbd>C</kbd> camera</div>
+  </div>
+ </main>
+</div>
+<script type="module">
+import * as THREE from 'three';
+
+const canvas = document.querySelector('#world');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:false, powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.7));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.13;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x8c9ca2, 0.0021);
+const camera = new THREE.PerspectiveCamera(47, window.innerWidth/window.innerHeight, 0.1, 1100);
+camera.position.set(-99, 34, 15);
+const clock = new THREE.Clock();
+const up = new THREE.Vector3(0,1,0);
+const forwardAxis = new THREE.Vector3(0,0,1);
+const curvePoints = [
+ new THREE.Vector3(-84,18,0), new THREE.Vector3(-68,18.5,-1),
+ new THREE.Vector3(-52,23,-8), new THREE.Vector3(-37,28,-13),
+ new THREE.Vector3(-20,29,-8), new THREE.Vector3(-4,23,7),
+ new THREE.Vector3(13,18,14), new THREE.Vector3(30,18.5,7),
+ new THREE.Vector3(46,24,-6), new THREE.Vector3(62,27,-3),
+ new THREE.Vector3(78,23,9), new THREE.Vector3(91,19,9)
+];
+const railCurve = new THREE.CatmullRomCurve3(curvePoints, false, 'centripetal', .45);
+railCurve.arcLengthDivisions = 1200;
+const routeLength = railCurve.getLength();
+const routeWorld = new THREE.Group();
+const workshopWorld = new THREE.Group();
+scene.add(routeWorld, workshopWorld);
+workshopWorld.visible = false;
+
+const mat = (color, roughness=.82, extra={}) => new THREE.MeshStandardMaterial({color, roughness, ...extra});
+const mats = {
+ grass:mat(0x758a62), grassLight:mat(0x91a274), rock:mat(0x554f50), rockLight:mat(0x76645b),
+ wood:mat(0x775b43), woodLight:mat(0xad8054), roof:mat(0xb95843), roofLight:mat(0xc76e51), wall:mat(0xe2c9a0), wallBlue:mat(0xc3c9af),
+ green:mat(0x345e4d,.53), greenLight:mat(0x557a5d,.55), brass:mat(0xb48b4e,.38,{metalness:.38}), glass:mat(0xafd0c9,.23,{metalness:.06,transparent:true,opacity:.61}),
+ dark:mat(0x263d3a,.65), chassis:mat(0x5c4739,.72), gold:mat(0xe9c575,.35,{emissive:0x795221,emissiveIntensity:.62}),
+ sea:mat(0x427c91,.27,{metalness:.08}), cloud:mat(0xd5d5ca,1), cloudLit:mat(0xe8d9bd,1)
+};
+
+// An untextured dusk dome keeps the horizon soft and the stars legible.
+const sky = new THREE.Mesh(new THREE.SphereGeometry(700,40,24), new THREE.ShaderMaterial({
+ side:THREE.BackSide, depthWrite:false,
+ vertexShader:`varying vec3 vSky; void main(){ vec4 p=modelMatrix*vec4(position,1.0); vSky=p.xyz; gl_Position=projectionMatrix*viewMatrix*p; }`,
+ fragmentShader:`varying vec3 vSky; void main(){ float h=normalize(vSky).y; vec3 low=vec3(.78,.56,.52); vec3 mid=vec3(.43,.49,.64); vec3 high=vec3(.18,.23,.39); float a=smoothstep(-.2,.34,h); float b=smoothstep(.2,.82,h); vec3 c=mix(low,mid,a); c=mix(c,high,b); gl_FragColor=vec4(c,1.0); }`
+}));
+scene.add(sky);
+const starPositions=[];
+for(let i=0;i<380;i++){
+ const y=THREE.MathUtils.randFloat(.12,1), a=Math.random()*Math.PI*2, r=Math.sqrt(1-y*y);
+ starPositions.push(Math.cos(a)*r*610,y*610,Math.sin(a)*r*610);
+}
+const starGeo=new THREE.BufferGeometry();
+starGeo.setAttribute('position',new THREE.Float32BufferAttribute(starPositions,3));
+scene.add(new THREE.Points(starGeo,new THREE.PointsMaterial({color:0xffefd0,size:1.35,sizeAttenuation:false,transparent:true,opacity:.72})));
+const hemi=new THREE.HemisphereLight(0xe7dcbf,0x40505a,2.05); scene.add(hemi);
+const sun=new THREE.DirectionalLight(0xffd1a0,2.15); sun.position.set(-70,110,45); sun.castShadow=true; sun.shadow.mapSize.set(1024,1024); sun.shadow.camera.left=-120; sun.shadow.camera.right=120; sun.shadow.camera.top=100; sun.shadow.camera.bottom=-100; sun.shadow.bias=-.0007; scene.add(sun);
+const fill=new THREE.DirectionalLight(0x9cb7d0,.7); fill.position.set(100,46,-80); scene.add(fill);
+
+const ocean=new THREE.Mesh(new THREE.PlaneGeometry(1600,1600),mats.sea); ocean.rotation.x=-Math.PI/2; ocean.position.y=-7.5; ocean.receiveShadow=true; scene.add(ocean);
+const waveMat=new THREE.LineBasicMaterial({color:0x93bdba,transparent:true,opacity:.18});
+for(let i=0;i<45;i++){
+ const x=THREE.MathUtils.randFloatSpread(410), z=THREE.MathUtils.randFloatSpread(330), len=THREE.MathUtils.randFloat(3,13), y=-7.35+Math.random()*.025;
+ const pts=[new THREE.Vector3(x-len,y,z),new THREE.Vector3(x-len*.35,y+.02,z+.25),new THREE.Vector3(x+len*.25,y,z+.32),new THREE.Vector3(x+len,y+.01,z+.12)];
+ scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),waveMat));
+}
+
+function addBox(parent,geometrySize,position,material,rotation=null,cast=true){
+ const mesh=new THREE.Mesh(new THREE.BoxGeometry(...geometrySize),material);
+ mesh.position.set(...position); if(rotation) mesh.rotation.set(...rotation); mesh.castShadow=cast; mesh.receiveShadow=true; parent.add(mesh); return mesh;
+}
+function addRockyIsland(parent,position,radius=15,height=14,flatColor=0x778965){
+ const island=new THREE.Group(); island.position.copy(position); parent.add(island);
+ const body=new THREE.Mesh(new THREE.ConeGeometry(radius,height,9,2),mats.rock); body.rotation.z=Math.PI; body.position.y=-height/2; body.castShadow=true; body.receiveShadow=true; island.add(body);
+ const upper=new THREE.Mesh(new THREE.ConeGeometry(radius*.83,height*.3,9,1),mats.rockLight); upper.rotation.z=Math.PI; upper.position.y=-height*.20; island.add(upper);
+ const top=new THREE.Mesh(new THREE.CircleGeometry(radius*.92,12),mat(flatColor,.97)); top.rotation.x=-Math.PI/2; top.position.y=.055; top.receiveShadow=true; island.add(top);
+ const edgeMat=mat(flatColor,.95);
+ for(let i=0;i<10;i++){
+  const a=i/10*Math.PI*2, rr=radius*THREE.MathUtils.randFloat(.76,.92);
+  const lump=new THREE.Mesh(new THREE.DodecahedronGeometry(THREE.MathUtils.randFloat(1.5,3.4),0),i%3===0?mats.rockLight:mats.rock);
+  lump.position.set(Math.cos(a)*rr,-height*.32+Math.random()*2,Math.sin(a)*rr); lump.scale.set(1.1,.8,1); lump.rotation.set(Math.random(),Math.random(),Math.random()); island.add(lump);
+ }
+ // Small tufts break the edge of the plateau into a hand-built silhouette.
+ for(let i=0;i<17;i++){
+  const a=Math.random()*Math.PI*2, rr=radius*THREE.MathUtils.randFloat(.48,.88);
+  const tuft=new THREE.Mesh(new THREE.ConeGeometry(.28,THREE.MathUtils.randFloat(.55,1.15),5),edgeMat);
+  tuft.position.set(Math.cos(a)*rr,.28,Math.sin(a)*rr); tuft.rotation.z=(Math.random()-.5)*.3; island.add(tuft);
+ }
+ return island;
+}
+function makeWindow(parent,x,y,z,w=.62,h=.82){
+ const glass=new THREE.Mesh(new THREE.BoxGeometry(w,.055,h),new THREE.MeshStandardMaterial({color:0xffd982,emissive:0xffb95c,emissiveIntensity:.72,roughness:.36}));
+ glass.position.set(x,y,z); parent.add(glass);
+ addBox(parent,[w+.12,.09,.07],[x,y,z+(z>0?.04:-.04)],mats.woodLight,null,false);
+ addBox(parent,[.055,.12,.075],[x,y,z+(z>0?.08:-.08)],mats.woodLight,null,false);
+}
+function makeHouse(parent,x,z,scale=1,wallMaterial=mats.wall){
+ const g=new THREE.Group(); g.position.set(x,0,z); g.scale.setScalar(scale); parent.add(g);
+ const body=new THREE.Mesh(new THREE.BoxGeometry(4.3,2.65,3.5),wallMaterial); body.position.y=1.38; body.castShadow=true; body.receiveShadow=true; g.add(body);
+ // Two separate roof planes create the familiar low-poly terracotta ridge.
+ const roofA=new THREE.Mesh(new THREE.BoxGeometry(2.65,.34,4.15),mats.roof); roofA.position.set(-.88,3.02,0); roofA.rotation.z=.56; roofA.castShadow=true; g.add(roofA);
+ const roofB=new THREE.Mesh(new THREE.BoxGeometry(2.65,.34,4.15),mats.roofLight); roofB.position.set(.88,3.02,0); roofB.rotation.z=-.56; roofB.castShadow=true; g.add(roofB);
+ const ridge=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,4.23,6),mats.roof); ridge.rotation.x=Math.PI/2; ridge.position.set(0,3.75,0); g.add(ridge);
+ addBox(g,[.55,1.15,.55],[1.15,3.28,-.9],mats.rockLight);
+ const door=addBox(g,[.8,1.45,.08],[0,.76,1.79],mats.wood); door.material=mat(0x76553e,.9,{emissive:0x392716,emissiveIntensity:.25});
+ for(const dx of [-1.2,1.2]) makeWindow(g,dx,1.72,1.79,.68,.78);
+ const sideWindow=new THREE.Mesh(new THREE.BoxGeometry(.06,.72,.72),new THREE.MeshStandardMaterial({color:0xffd17d,emissive:0xe9a950,emissiveIntensity:.62})); sideWindow.position.set(2.18,1.75,-.55); g.add(sideWindow);
+ addBox(g,[1.2,.12,.22],[0,.14,1.85],mats.woodLight,null,false);
+ return g;
+}
+function makeTree(parent,x,z,scale=1){
+ const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(scale);parent.add(g);
+ const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.18,.28,1.9,6),mats.wood);trunk.position.y=.95;trunk.castShadow=true;g.add(trunk);
+ for(let i=0;i<3;i++){
+  const leaf=new THREE.Mesh(new THREE.IcosahedronGeometry(1.15-i*.12,1),i===1?mats.grassLight:mats.grass);leaf.position.set((i-1)*.22,2.05+i*.56,0);leaf.scale.set(1.05,.88,1);leaf.castShadow=true;g.add(leaf);
+ }
+ return g;
+}
+function makeLamp(parent,x,z){
+ const pole=new THREE.Mesh(new THREE.CylinderGeometry(.07,.105,3.1,7),mats.dark);pole.position.set(x,1.55,z);pole.castShadow=true;parent.add(pole);
+ addBox(parent,[.8,.09,.09],[x+.34,3.05,z],mats.dark,[0,0,-.18]);
+ const lantern=new THREE.Mesh(new THREE.BoxGeometry(.43,.43,.43),mats.gold);lantern.position.set(x+.68,2.82,z);parent.add(lantern);
+ const cap=new THREE.Mesh(new THREE.ConeGeometry(.34,.28,5),mats.wood);cap.position.set(x+.68,3.17,z);parent.add(cap);
+ const light=new THREE.PointLight(0xffc975,.75,13,2);light.position.set(x+.68,2.8,z);parent.add(light);
+}
+function makeSign(parent,label,x,z){
+ const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);
+ addBox(g,[.16,3.8,.16],[0,1.9,0],mats.woodLight);
+ addBox(g,[6.8,1.45,.35],[0,3.72,0],mats.wood);
+ addBox(g,[6.5,1.17,.09],[0,3.74,.21],mat(0xeee1c2,.9));
+ const canvas=document.createElement('canvas');canvas.width=512;canvas.height=120;
+ const ctx=canvas.getContext('2d');ctx.fillStyle='#526a58';ctx.font='600 48px Georgia';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(label,256,61);
+ const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;
+ const signMaterial=new THREE.MeshBasicMaterial({map:tex,transparent:true});
+ const board=new THREE.Mesh(new THREE.PlaneGeometry(6.15,1.1),signMaterial);board.position.set(0,3.74,.27);g.add(board);
+ const reverseBoard=new THREE.Mesh(new THREE.PlaneGeometry(6.15,1.1),signMaterial);reverseBoard.position.set(0,3.74,-.27);reverseBoard.rotation.y=Math.PI;g.add(reverseBoard);
+}
+function makePerson(parent,x,z,color=0x9d7256){
+ const p=new THREE.Group();p.position.set(x,.35,z);parent.add(p);
+ const coat=mat(color,.92), skin=mat(0xe5bb8d,.8), hair=mat(0x594737,.95);
+ const torso=new THREE.Mesh(new THREE.CylinderGeometry(.24,.31,.78,6),coat);torso.position.y=.8;torso.castShadow=true;p.add(torso);
+ const head=new THREE.Mesh(new THREE.IcosahedronGeometry(.25,1),skin);head.position.y=1.39;head.castShadow=true;p.add(head);
+ const hairCap=new THREE.Mesh(new THREE.SphereGeometry(.255,7,5,0,Math.PI*2,0,Math.PI*.55),hair);hairCap.position.y=1.48;p.add(hairCap);
+ const legs=new THREE.Mesh(new THREE.BoxGeometry(.4,.23,.32),mats.dark);legs.position.set(0,.18,.05);p.add(legs);
+ const bag=new THREE.Mesh(new THREE.BoxGeometry(.28,.35,.2),mats.woodLight);bag.position.set(.29,.73,-.08);p.add(bag);
+ return p;
+}
+function createStation(name,point,isMango=false){
+ const station=new THREE.Group();station.position.copy(point);routeWorld.add(station);
+ addRockyIsland(station,new THREE.Vector3(0,-.5,0),isMango?17:16,16,isMango?0x778967:0x81906c);
+ // The path and low station deck sit just below the rail bed.
+ const pathMat=mat(0xc4aa80,.96);
+ addBox(station,[8,.13,19],[isMango?6:-6,.17,isMango?-5:5],pathMat,[0,0,.03],false);
+ addBox(station,[13,.38,5.4],[0,-.04,0],mats.wood,[0,0,0]);
+ addBox(station,[12.6,.14,5.05],[0,.22,0],mat(0xcbb78e,.92),null,false);
+ // Waiting shelter
+ const shelter=new THREE.Group();shelter.position.set(5,.35,8);station.add(shelter);
+ addBox(shelter,[7,.25,3.7],[0,2.55,0],mats.woodLight);
+ for(const sx of [-3,3]){addBox(shelter,[.18,2.55,.18],[sx,1.25,0],mats.wood);}
+ addBox(shelter,[7,.22,.16],[0,1.95,0],mats.wood);
+ for(let i=0;i<3;i++) makePerson(station,-3.8+i*1.55,isMango?3.9:-3.9,[0x9d795e,0x748477,0xb77b61][i]);
+ for(let i=0;i<3;i++) makePerson(station,3.8-i*1.55,isMango?3.2:-3.2,[0xc0905f,0x7d8d91,0x966c75][i]);
+ makeHouse(station,isMango?-10:10,isMango?7:-7,1.05,isMango?mats.wallBlue:mats.wall);
+ makeHouse(station,isMango?12:-12,isMango?-8:8,.8,isMango?mats.wall:mats.wallBlue);
+ makeHouse(station,isMango?-3:4,isMango?-12:12,.64,mats.wall);
+ for(const [x,z,s] of [[-15,-2,.95],[-12,14,.8],[15,0,1.05],[2,14,.72]]) makeTree(station,x,z,s);
+ makeLamp(station,-6,isMango?1:-1);makeLamp(station,6,isMango?-1:1);
+ makeSign(station,name,0,isMango?-9:9);
+ if(!isMango){
+  const lightHouse=new THREE.Group();lightHouse.position.set(9,.2,11);station.add(lightHouse);
+  const tower=new THREE.Mesh(new THREE.CylinderGeometry(.8,1.22,7.6,9),mat(0xe6d8b6,.85));tower.position.y=3.8;tower.castShadow=true;lightHouse.add(tower);
+  for(let y=1;y<7;y+=1.45){const stripe=new THREE.Mesh(new THREE.CylinderGeometry(1.14-y*.045,1.19-y*.045,.22,9),mats.roof);stripe.position.y=y;lightHouse.add(stripe);}
+  const balcony=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.1,.22,9),mats.dark);balcony.position.y=7.2;lightHouse.add(balcony);
+  const lantern=new THREE.Mesh(new THREE.CylinderGeometry(.7,.7,1.05,8),mats.gold);lantern.position.y=7.85;lightHouse.add(lantern);
+  const cap=new THREE.Mesh(new THREE.ConeGeometry(.92,.72,8),mats.roof);cap.position.y=8.7;lightHouse.add(cap);
+  const beam=new THREE.PointLight(0xffdf9a,2.2,48,1.7);beam.position.set(0,7.9,0);lightHouse.add(beam);
+ }else{
+  // A tiny floating dock and a moored skiff mark Mango Tide's sheltered side.
+  const dock=new THREE.Group();dock.position.set(12,-.55,-11);station.add(dock);
+  addBox(dock,[10,.35,3],[0,0,0],mats.woodLight);
+  for(let i=0;i<5;i++)addBox(dock,[1.75,.11,3.2],[-4+i*2,.23,0],mats.wood,null,false);
+  const boat=new THREE.Mesh(new THREE.CapsuleGeometry(.55,3.1,3,7),mat(0x9e6048));boat.rotation.y=Math.PI/2;boat.position.set(1,-.28,2.6);dock.add(boat);
+ }
+ return station;
+}
+
+const startPoint=railCurve.getPointAt(0),endPoint=railCurve.getPointAt(1);
+createStation('Saltlight Terminus',startPoint,false);
+createStation('Mango Tide',endPoint,true);
+// Two quiet, distant islands hold the skyline open beyond the route.
+for(const [x,y,z,r] of [[-20,37,-58,11],[52,34,62,13],[112,27,-40,9]]){
+ const distant=addRockyIsland(routeWorld,new THREE.Vector3(x,y,z),r,10,0x718268);
+ for(let i=0;i<3;i++)makeTree(distant,(i-1)*4,-2+i*1.5,.65);
+ makeHouse(distant,1,-2,.52,mats.wallBlue);
+}
+
+function makeCloudBank(x,y,z,scale=1){
+ const group=new THREE.Group();group.position.set(x,y,z);group.scale.setScalar(scale);scene.add(group);
+ for(let i=0;i<7;i++){
+  const puff=new THREE.Mesh(new THREE.IcosahedronGeometry(THREE.MathUtils.randFloat(2.6,4.8),1),i%4===0?mats.cloudLit:mats.cloud);
+  puff.position.set((i-3)*3.1,Math.sin(i*1.9)*1.1,Math.cos(i*1.7)*2.3);puff.scale.set(1.35,.7,1);puff.castShadow=true;group.add(puff);
+ }
+ return group;
+}
+const cloudBanks=[];
+for(const spec of [[-73,9,-27,1.5],[-52,8,27,1.8],[-28,11,-29,1.5],[-3,7,-29,1.9],[23,9,31,1.7],[49,10,-28,1.8],[74,8,29,1.6],[103,6,0,1.8],[-94,6,15,1.5]]) cloudBanks.push(makeCloudBank(...spec));
+
+// The rails are sampled from one centripetal Catmull–Rom spine; the cart reads distance by arc length.
+const railMat=mat(0x514f4b,.37,{metalness:.62});
+const railPoints=[[],[]];
+for(let i=0;i<=360;i++){
+ const u=i/360,p=railCurve.getPointAt(u),t=railCurve.getTangentAt(u).normalize(),side=new THREE.Vector3().crossVectors(up,t).normalize();
+ railPoints[0].push(p.clone().addScaledVector(side,1.05));railPoints[1].push(p.clone().addScaledVector(side,-1.05));
+}
+for(const points of railPoints){
+ const curve=new THREE.CatmullRomCurve3(points,false,'centripetal',.35);
+ const rail=new THREE.Mesh(new THREE.TubeGeometry(curve,700,.105,7,false),railMat);rail.castShadow=true;rail.receiveShadow=true;routeWorld.add(rail);
+}
+const sleeperMat=mat(0x695744,.92);
+const sleeperCount=Math.floor(routeLength/2.55);
+const sleeperGeo=new THREE.BoxGeometry(3.15,.24,.42);
+for(let i=0;i<=sleeperCount;i++){
+ const u=i/sleeperCount,p=railCurve.getPointAt(u),t=railCurve.getTangentAt(u).normalize(),right=new THREE.Vector3().crossVectors(up,t).normalize(),localUp=new THREE.Vector3().crossVectors(t,right).normalize();
+ const sleeper=new THREE.Mesh(sleeperGeo,sleeperMat);sleeper.position.copy(p).addScaledVector(up,-.24);sleeper.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right,localUp,t));sleeper.castShadow=true;sleeper.receiveShadow=true;routeWorld.add(sleeper);
+ if(i%10===0&&i>0&&i<sleeperCount){
+  for(const s of [-1,1]){
+   const support=new THREE.Mesh(new THREE.CylinderGeometry(.12,.24,Math.max(2,p.y-2),6),mats.wood);support.position.copy(p).addScaledVector(right,s*1.3);support.position.y=(p.y-2)/2;support.castShadow=true;routeWorld.add(support);
+  }
+ }
+}
+
+function addWindowFrame(parent,x,z){
+ const frame=mat(0x795f42,.9);
+ for(const dz of [-.52,.52])addBox(parent,[.12,1.36,.1],[x,1.98,z+dz],frame,null,false);
+ addBox(parent,[.13,.12,1.14],[x,2.66,z],frame,null,false);
+ addBox(parent,[.13,.12,1.14],[x,1.31,z],frame,null,false);
+}
+function createTram(parent,upgraded=false){
+ const cart=new THREE.Group();parent.add(cart);
+ const under=new THREE.Group();cart.add(under);
+ addBox(under,[3.2,.38,6.35],[0,.42,0],mats.chassis);
+ addBox(under,[3.45,.16,6.58],[0,.67,0],mats.woodLight);
+ addBox(under,[3.2,.66,6.05],[0,1.0,0],mats.green);
+ // Window bays leave the middle of the cabin open to the seated passengers.
+ for(const x of [-1.57,1.57]){
+  for(const z of [-2.18,-.74,.74,2.18]){
+   const pane=new THREE.Mesh(new THREE.BoxGeometry(.075,1.24,1.12),mats.glass);pane.position.set(x,2.02,z);pane.castShadow=false;under.add(pane);
+   addWindowFrame(under,x*1.015,z);
+  }
+  addBox(under,[.14,.36,6.03],[x,1.48,0],mats.greenLight,null,false);
+  addBox(under,[.14,.16,6.03],[x,2.76,0],mats.woodLight,null,false);
+ }
+ // Narrow end walls, a curved front pane, and brass corner posts.
+ addBox(under,[3.13,1.75,.18],[0,1.93,-3.0],mats.green);
+ addBox(under,[3.13,.72,.16],[0,1.48,3.0],mats.green);
+ const frontGlass=new THREE.Mesh(new THREE.BoxGeometry(1.8,1.12,.08),mats.glass);frontGlass.position.set(0,2.14,3.04);under.add(frontGlass);
+ for(const x of [-1.45,1.45]){
+  for(const z of [-2.92,2.92])addBox(under,[.13,1.95,.14],[x,1.93,z],mats.brass,null,false);
+ }
+ const roof=new THREE.Mesh(new THREE.SphereGeometry(1.76,14,7,0,Math.PI*2,0,Math.PI/2),mats.green);roof.scale.set(1,.62,1.9);roof.position.y=2.84;roof.castShadow=true;under.add(roof);
+ addBox(under,[3.28,.16,6.36],[0,2.77,0],mats.greenLight,null,false);
+ // Interior benches and low-poly riders remain visible behind the glass.
+ for(const z of [-1.3,.5,1.9]){
+  addBox(under,[1.95,.28,.62],[0,1.22,z],mats.woodLight,null,false);
+  addBox(under,[1.88,.58,.18],[0,1.57,z-.19],mats.wood,null,false);
+ }
+ const riderColors=[0xa46f52,0x738a78,0xb89567,0x8d7180,0x557884,0xc28768];
+ for(let i=0;i<6;i++){
+  const x=i%2===0?-.66:.66,z=-1.25+Math.floor(i/2)*1.23;
+  const person=new THREE.Group();person.position.set(x,1.43,z);under.add(person);
+  const coat=new THREE.Mesh(new THREE.CylinderGeometry(.2,.24,.46,6),mat(riderColors[i],.9));coat.position.y=.34;person.add(coat);
+  const head=new THREE.Mesh(new THREE.IcosahedronGeometry(.19,1),mat(i%2?0xe1b993:0xd5a17a));head.position.y=.72;person.add(head);
+  const hair=new THREE.Mesh(new THREE.SphereGeometry(.195,7,5,0,Math.PI*2,0,Math.PI*.58),mat(i%3?0x5a473b:0x3d4140));hair.position.y=.79;person.add(hair);
+ }
+ // Openable paired side doors.
+ const doors=[];
+ for(const side of [-1,1]){
+  const doorGroup=new THREE.Group();doorGroup.position.set(side*1.66,1.62,0);under.add(doorGroup);
+  const doorMesh=new THREE.Mesh(new THREE.BoxGeometry(.075,1.04,.92),mats.greenLight);doorMesh.position.z=0;doorGroup.add(doorMesh);
+  const inset=new THREE.Mesh(new THREE.BoxGeometry(.08,.62,.62),mats.glass);inset.position.set(side*.02,.15,0);doorGroup.add(inset);
+  doors.push({group:doorGroup,side});
+ }
+ // Front and rear lamps, luggage rails, and woven seat details.
+ for(const x of [-.92,.92]){
+  const lamp=new THREE.Mesh(new THREE.SphereGeometry(.16,8,6),mats.gold);lamp.position.set(x,1.32,3.14);under.add(lamp);
+  const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.59,.59,.23,10),mats.dark);wheel.rotation.x=Math.PI/2;wheel.position.set(x*1.47,.45,-2.15);wheel.castShadow=true;under.add(wheel);
+  const rearWheel=new THREE.Mesh(new THREE.CylinderGeometry(.59,.59,.23,10),mats.dark);rearWheel.rotation.x=Math.PI/2;rearWheel.position.set(x*1.47,.45,2.15);rearWheel.castShadow=true;under.add(rearWheel);
+ }
+ addBox(under,[2.7,.16,.28],[0,.44,-2.15],mats.brass,null,false);addBox(under,[2.7,.16,.28],[0,.44,2.15],mats.brass,null,false);
+ const rack=new THREE.Group();rack.position.set(0,3.83,-.1);under.add(rack);
+ for(const x of [-1.2,1.2])addBox(rack,[.13,.16,3.35],[x,0,0],mats.brass,null,false);
+ for(const z of [-1.55,1.55])addBox(rack,[2.55,.14,.14],[0,.02,z],mats.brass,null,false);
+ for(const z of [-.9,0,.9])addBox(rack,[.13,.14,2.4],[0,.08,z],mats.brass,null,false);
+ const luggage=new THREE.Group();luggage.position.set(0,.18,-.2);rack.add(luggage);
+ const bagColors=[0xa65f44,0xc7965f,0x516d5a];
+ for(let i=0;i<3;i++){
+  const bag=new THREE.Mesh(new THREE.BoxGeometry(.95,.48,.74),mat(bagColors[i],.95));bag.position.set((i-1)*.82,.28,0);bag.rotation.y=(i-1)*.11;bag.castShadow=true;luggage.add(bag);
+ addBox(luggage,[.08,.51,.76],[(i-1)*.82,.28,0],mats.woodLight,null,false);
+ }
+ const lanterns=new THREE.Group();under.add(lanterns);
+ for(const z of [-2.95,2.95])for(const x of [-1.2,1.2]){
+  const light=new THREE.Mesh(new THREE.BoxGeometry(.31,.38,.34),mats.gold);light.position.set(x,2.95,z);lanterns.add(light);
+  const frame=new THREE.Mesh(new THREE.BoxGeometry(.39,.055,.4),mats.dark);frame.position.set(x,3.17,z);lanterns.add(frame);
+ }
+ const vines=new THREE.Group();under.add(vines);
+ for(const side of [-1,1]){
+  const pts=[];
+  for(let i=0;i<=28;i++){const z=-2.85+i/28*5.7;pts.push(new THREE.Vector3(side*1.73,2.45+Math.sin(i*.55)*.12+Math.sin(i*.19)*.13,z));}
+  const vine=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),38,.042,5,false),mat(0x55764f,.9));vines.add(vine);
+  for(let i=2;i<28;i+=3){const leaf=new THREE.Mesh(new THREE.IcosahedronGeometry(.12,0),i%2?mats.grass:mats.grassLight);leaf.position.copy(pts[i]);leaf.position.x+=side*.08;leaf.rotation.z=(i%3-1)*.5;leaf.scale.set(1,.5,1.35);vines.add(leaf);}
+ }
+ const upgradeRoof=roof.material;
+ rack.visible=upgraded;lanterns.visible=upgraded;vines.visible=upgraded;
+ if(upgraded)upgradeRoof.color.setHex(0x66805a);
+ cart.userData={doors,rack,lanterns,vines,roof,upgradeRoof,under};
+ return cart;
+}
+const tram=createTram(routeWorld,false);
+const workshopTram=createTram(workshopWorld,false);
+
+// A separate tabletop/isometric island: the original route scene stays intact underneath it.
+addRockyIsland(workshopWorld,new THREE.Vector3(0,3.2,0),15,13,0x79896b);
+const workshopDeck=new THREE.Group();workshopDeck.position.set(0,9.9,0);workshopWorld.add(workshopDeck);
+addBox(workshopDeck,[24,.65,17],[0,0,0],mat(0x8e7659,.92));
+addBox(workshopDeck,[22,.18,15],[0,.42,0],mat(0xd0b58a,.95));
+for(let x=-9;x<=9;x+=3)addBox(workshopDeck,[.08,.03,14],[x,.53,0],mat(0xbaa27c,.95),null,false);
+for(let z=-6;z<=6;z+=3)addBox(workshopDeck,[20,.03,.08],[0,.53,z],mat(0xbaa27c,.95),null,false);
+// Workshop cottage, open awning, workbench, and the train cradle.
+const workshopHut=new THREE.Group();workshopHut.position.set(-5,.53,-4.6);workshopDeck.add(workshopHut);
+addBox(workshopHut,[7.6,3.3,5.2],[0,1.65,0],mats.wallBlue);
+addBox(workshopHut,[8.5,.35,6.2],[0,3.5,0],mats.roof);
+for(const x of [-3.3,3.3])addBox(workshopHut,[.22,3.6,.22],[x,1.7,0],mats.wood);
+addBox(workshopHut,[8.2,.16,.18],[0,2.45,2.85],mats.woodLight);
+for(const x of [-2.1,2.1])makeWindow(workshopHut,x,1.75,2.63,.95,1.1);
+addBox(workshopDeck,[8,.5,2.4],[1.5,.88,3.55],mats.wood);
+for(const x of [-2,5])addBox(workshopDeck,[.16,1.2,.16],[x,.88,3.4],mats.woodLight);
+// A little flower trough and tools make the upgrade scene read as a lived-in place.
+addBox(workshopDeck,[5,.42,.72],[-8,.84,3.9],mats.woodLight);
+for(let i=0;i<6;i++){
+ const flower=new THREE.Mesh(new THREE.IcosahedronGeometry(.28,1),[mats.roofLight,mats.grassLight,mats.gold][i%3]);flower.position.set(-10+i*.8,1.34,3.9+Math.sin(i)*.2);workshopDeck.add(flower);
+}
+for(let i=0;i<4;i++){
+ const tool=new THREE.Mesh(new THREE.BoxGeometry(.15,.75,.18),i%2?mats.brass:mats.dark);tool.position.set(-.3+i*.6,1.48,3.45);tool.rotation.z=(i-1.5)*.1;workshopDeck.add(tool);
+}
+for(const [x,z,s] of [[-10,-5,.72],[9,-5,.85],[9,5,.76],[-9,6,.72]])makeTree(workshopDeck,x,z,s);
+makeLamp(workshopDeck,9,0);
+workshopTram.position.set(2,10.55,0);
+
+const ui={
+ origin:document.querySelector('#originName'),destination:document.querySelector('#destinationName'),routeStart:document.querySelector('#routeStart'),routeEnd:document.querySelector('#routeEnd'),
+ weather:document.querySelector('#weatherText'),coins:document.querySelector('#coins'),streak:document.querySelector('#streak'),speed:document.querySelector('#speedValue'),speedFill:document.querySelector('#speedFill'),
+ comfort:document.querySelector('#comfortLabel'),routeProgress:document.querySelector('#routeProgress'),routeDot:document.querySelector('#routeDot'),passengers:document.querySelector('#passengerCount'),
+ toast:document.querySelector('#toast'),stationCard:document.querySelector('#stationCard'),arrivalTitle:document.querySelector('#arrivalTitle'),arrivalCopy:document.querySelector('#arrivalCopy'),arrivalEyebrow:document.querySelector('#arrivalEyebrow'),
+ doors:document.querySelector('#doorsButton'),continue:document.querySelector('#continueButton'),visitWorkshop:document.querySelector('#visitWorkshopButton'),workshopCard:document.querySelector('#workshopCard'),workshopButton:document.querySelector('#workshopButton'),rollOut:document.querySelector('#rollOutButton'),
+ progress:document.querySelector('#workProgress'),workPercent:document.querySelector('#workPercent'),workCaption:document.querySelector('#workCaption'),partOne:document.querySelector('#partOne'),partTwo:document.querySelector('#partTwo'),partOneDetail:document.querySelector('#partOneDetail'),partTwoDetail:document.querySelector('#partTwoDetail'),hud:document.querySelector('#hud')
+};
+const state={phase:'driving',direction:1,progress:0,speed:0,comfort:100,passengers:12,alighted:0,boarded:0,coins:420,streak:2,smoothTime:0,condition:'Steady',doorsOpen:false,doorOpenAmount:0,doorTime:0,doorPhase:0,pendingPassengers:12,arrivedAt:null,upgradeApplied:false,upgradeProgress:0,upgradeRunning:false,workshopSeen:false,cameraMode:0,steer:0,steerTarget:0,autoDeparture:0,tapPower:0,tapBrake:0,lastPlayerAccel:0};
+const input={power:false,brake:false};
+const maxSpeed=26.4;
+let toastTimer=0;
+function showToast(text,duration=2400){ui.toast.textContent=text;ui.toast.classList.add('show');toastTimer=duration/1000;}
+function hideToast(){ui.toast.classList.remove('show');}
+function currentNames(){return state.direction>0?['Saltlight Terminus','Mango Tide']:['Mango Tide','Saltlight Terminus'];}
+function updateRouteLabels(){const [from,to]=currentNames();ui.origin.textContent=from;ui.destination.textContent=to;ui.routeStart.textContent=from;ui.routeEnd.textContent=to;}
+function updateArrivalCard(){
+ const arrived=state.phase==='arrived';ui.stationCard.classList.toggle('visible',arrived);if(!arrived)return;
+ const [,to]=currentNames();
+ ui.arrivalTitle.textContent=to;
+ ui.arrivalEyebrow.textContent=state.doorsOpen?'Platform life, unhurried':'A little island stop';
+ if(!state.doorsOpen){ui.arrivalCopy.textContent=state.arrivedAt?.bonus?`Smooth arrival · +${state.arrivedAt.bonus} tips. Let the island breathe.`:'Take a breath. The platform is waiting.';ui.doors.hidden=false;ui.continue.hidden=true;ui.visitWorkshop.hidden=true;ui.doors.disabled=false;ui.doors.innerHTML='Open the doors <span class="button-icon">↗</span>';}
+ else{
+  ui.doors.hidden=true;
+  if(state.doorPhase===1){ui.arrivalCopy.textContent=`Doors opening — ${to}. Please wait…`;ui.continue.hidden=true;ui.visitWorkshop.hidden=true;}
+  else{ui.arrivalCopy.textContent=`${state.alighted} stepped off · ${state.boarded} boarded. ${state.pendingPassengers}/16 aboard.`;ui.continue.hidden=!state.workshopSeen;ui.visitWorkshop.hidden=state.workshopSeen;}
+ }
+}
+function updateWorkshopUI(){
+ const active=state.phase==='workshop';ui.workshopCard.classList.toggle('visible',active);ui.hud.classList.toggle('workshop-view',active);
+ if(!active)return;
+ if(!state.upgradeApplied){ui.workshopButton.hidden=false;ui.rollOut.hidden=true;}
+ else{ui.workshopButton.hidden=true;ui.rollOut.hidden=false;}
+}
+function setWorldView(workshop){routeWorld.visible=!workshop;workshopWorld.visible=workshop;for(const cloud of cloudBanks)cloud.visible=!workshop;}
+function setPhase(phase){state.phase=phase;updateArrivalCard();updateWorkshopUI();}
+function arrive(){
+ state.progress=state.direction>0?1:0;state.speed=0;state.doorsOpen=false;state.doorPhase=0;state.pendingPassengers=state.passengers;
+ const bonus=state.comfort>=75?75:0;if(bonus){state.coins+=bonus;showToast(`A lovely smooth arrival · +${bonus} tips`,2900);}else showToast(`${currentNames()[1]} is just ahead. Easy now.`,2300);
+ state.arrivedAt={bonus};setPhase('arrived');
+}
+function openDoors(){
+ if(state.phase!=='arrived'||state.doorsOpen)return;
+ state.doorsOpen=true;state.doorPhase=1;state.doorTime=0;
+ const unload=Math.min(Math.max(2,Math.floor(state.passengers*.55)),state.passengers);const board=Math.min(4,16-(state.passengers-unload));state.alighted=unload;state.boarded=board;state.pendingPassengers=state.passengers-unload+board;
+ updateArrivalCard();showToast(`Doors opening — ${currentNames()[1]}`,2200);
+}
+function leaveStation(){
+ if(!state.doorsOpen||state.doorPhase===1)return;
+ if(!state.workshopSeen){showToast('A few minutes at Oliver’s workshop first.',2000);return;}
+ setWorldView(false);state.direction*=-1;state.speed=0;state.progress=state.direction>0?0:1;state.doorsOpen=false;state.doorPhase=0;state.comfort=Math.max(state.comfort,86);state.smoothTime=0;state.streak=Math.max(state.streak,1);
+ updateRouteLabels();setPhase('driving');showToast('All aboard · Next stop: the Coastal Line',2700);
+}
+function enterWorkshop(){if(state.phase!=='arrived'||!state.doorsOpen||state.doorPhase===1)return;state.workshopSeen=true;state.speed=0;setWorldView(true);setPhase('workshop');showToast('Oliver has the kettle on.',1900);}
+function beginUpgrade(){if(state.upgradeRunning||state.upgradeApplied)return;state.upgradeRunning=true;state.upgradeProgress=0;ui.workshopButton.disabled=true;ui.partOne.classList.add('active');ui.partTwo.classList.remove('active');ui.workCaption.textContent='Sit back and watch the workshop.';}
+function finishUpgrade(){
+ state.upgradeRunning=false;state.upgradeApplied=true;ui.workshopButton.disabled=false;ui.progress.style.width='100%';ui.workPercent.textContent='100%';ui.workCaption.textContent='The little companion is ready.';
+ ui.partOne.classList.remove('active');ui.partTwo.classList.add('active');ui.partOneDetail.textContent='Old fitting safely set aside';ui.partTwoDetail.textContent='Roof rack, lanterns & hearth leaves fitted';
+ for(const car of [tram,workshopTram]){car.userData.rack.visible=true;car.userData.lanterns.visible=true;car.userData.vines.visible=true;car.userData.roof.material.color.setHex(0x66805a);}
+ updateWorkshopUI();showToast('New leaves on the roof. Ready for the coast.',2500);
+}
+function rollOut(){
+ if(!state.upgradeApplied)return;
+ setWorldView(false);state.direction*=-1;state.progress=state.direction>0?0:1;state.speed=0;state.autoDeparture=1.25;state.comfort=Math.max(88,state.comfort);state.doorsOpen=false;state.doorPhase=0;state.passengers=state.pendingPassengers;ui.passengers.textContent=state.passengers;
+ updateRouteLabels();setPhase('driving');showToast('All aboard · Next stop: the Coastal Line',2900);
+}
+ui.doors.addEventListener('click',openDoors);ui.continue.addEventListener('click',leaveStation);ui.visitWorkshop.addEventListener('click',enterWorkshop);ui.workshopButton.addEventListener('click',beginUpgrade);ui.rollOut.addEventListener('click',rollOut);
+
+function bindHold(button,key){
+ const set=(down)=>{input[key]=down;button.classList.toggle('held',down);};
+ button.addEventListener('pointerdown',e=>{e.preventDefault();button.setPointerCapture?.(e.pointerId);set(true);});
+ for(const type of ['pointerup','pointercancel','lostpointercapture'])button.addEventListener(type,e=>{e.preventDefault?.();set(false);});
+ button.addEventListener('contextmenu',e=>e.preventDefault());
+ button.addEventListener('click',()=>{if(state.phase==='driving'&&!input[key])state[key==='power'?'tapPower':'tapBrake']=.42;});
+}
+bindHold(document.querySelector('#powerButton'),'power');bindHold(document.querySelector('#brakeButton'),'brake');
+const heldKeys=new Set();
+function keyDown(e){
+ const key=e.key.toLowerCase();
+ if(['w','s','arrowleft','arrowright',' '].includes(key))e.preventDefault();
+ if(key==='w'||key==='arrowup'){input.power=true;document.querySelector('#powerButton').classList.add('held');}
+ if(key==='s'||key==='arrowdown'){input.brake=true;document.querySelector('#brakeButton').classList.add('held');}
+ if(key==='arrowleft'||key==='a')state.steerTarget=-1;
+ if(key==='arrowright'||key==='d')state.steerTarget=1;
+ if(key==='c'&&!heldKeys.has(key)){state.cameraMode=(state.cameraMode+1)%2;showToast(state.cameraMode?'Long view · a wider look':'Rail view · back on the line',1250);}
+ if(key==='e'&&!heldKeys.has(key)){if(state.phase==='arrived')state.doorsOpen?enterWorkshop():openDoors();else if(state.phase==='workshop'&&state.upgradeApplied)rollOut();}
+ heldKeys.add(key);
+}
+function keyUp(e){const key=e.key.toLowerCase();if(key==='w'||key==='arrowup'){input.power=false;document.querySelector('#powerButton').classList.remove('held');}if(key==='s'||key==='arrowdown'){input.brake=false;document.querySelector('#brakeButton').classList.remove('held');}if(key==='arrowleft'||key==='a')state.steerTarget=0;if(key==='arrowright'||key==='d')state.steerTarget=0;heldKeys.delete(key);}
+window.addEventListener('keydown',keyDown);window.addEventListener('keyup',keyUp);window.addEventListener('blur',()=>{input.power=false;input.brake=false;state.steerTarget=0;document.querySelectorAll('.control-btn').forEach(b=>b.classList.remove('held'));});
+
+function curvePose(u,dir=1){
+ const p=railCurve.getPointAt(THREE.MathUtils.clamp(u,0,1));
+ const tangent=railCurve.getTangentAt(THREE.MathUtils.clamp(u,0,1)).normalize().multiplyScalar(dir);
+ const side=new THREE.Vector3().crossVectors(up,tangent).normalize();return {p,tangent,side};
+}
+function getCurvature(u){
+ const step=.0035,a=railCurve.getTangentAt(THREE.MathUtils.clamp(u-step,0,1)).normalize(),b=railCurve.getTangentAt(THREE.MathUtils.clamp(u+step,0,1)).normalize();
+ const dist=Math.max(.01,routeLength*(Math.min(1,u+step)-Math.max(0,u-step)));return a.angleTo(b)/dist;
+}
+let cameraLook=new THREE.Vector3(-62,18,0), cameraPosition=new THREE.Vector3(-103,29,10);
+function updateCartAndCamera(dt,now){
+ const u=THREE.MathUtils.clamp(state.progress,0,1),{p,tangent,side}=curvePose(u,state.direction);
+ state.steer+=(state.steerTarget-state.steer)*(1-Math.exp(-dt*3.8));
+ const wind=state.condition==='Crosswind';
+ const curvature=getCurvature(u);const lateral=state.speed*state.speed*curvature;
+ const lean=THREE.MathUtils.clamp((lateral/17)*(state.direction>0?1:-1),-.34,.34)+Math.sin(now*2.15)*.028+Math.sin(now*5.7)*.015;
+ tram.position.copy(p).addScaledVector(side,state.steer*.16);tram.position.y+=.12+Math.sin(now*4.4)*Math.min(.075,state.speed*.0022);
+ tram.quaternion.setFromUnitVectors(forwardAxis,tangent);tram.rotateZ(lean+(wind?Math.sin(now*1.7)*.07:0));tram.rotateX(-state.lastPlayerAccel*.008);
+ const narrow=window.innerWidth<760;const d=state.cameraMode?22:narrow?21:18.5;
+ const lateralOffset=state.cameraMode?(narrow?5:17):(narrow?1.8:12.5);
+ const targetPos=p.clone().addScaledVector(tangent,-d).addScaledVector(up,state.cameraMode?14:10.6).addScaledVector(side,lateralOffset+state.steer*(narrow?1:2.3));
+ const targetLook=p.clone().addScaledVector(tangent,state.cameraMode?3:9.5).addScaledVector(up,2.6);
+ const ease=1-Math.exp(-dt*(state.phase==='workshop'?2:3.25));
+ if(state.phase==='workshop'){
+  const wp=new THREE.Vector3(20,31,24),wl=new THREE.Vector3(0,11,0);cameraPosition.lerp(wp,1-Math.exp(-dt*2.5));cameraLook.lerp(wl,1-Math.exp(-dt*2.5));
+ }else{
+  cameraPosition.lerp(targetPos,ease);cameraLook.lerp(targetLook,ease);
+ }
+ camera.position.copy(cameraPosition);camera.lookAt(cameraLook);
+ tram.visible=state.phase!=='workshop';workshopTram.visible=state.phase==='workshop';
+ if(state.phase==='workshop'){
+  workshopTram.position.set(2,10.55+Math.sin(now*1.6)*.035,0);
+  workshopTram.rotation.y=Math.sin(now*.48)*.035;
+ }
+ const doorTarget=state.doorsOpen?1:0;
+ state.doorOpenAmount+=(doorTarget-state.doorOpenAmount)*(1-Math.exp(-dt*4.5));
+ for(const door of tram.userData.doors){door.group.position.x=door.side*(1.66+state.doorOpenAmount*.52);}
+}
+function updatePhysics(dt){
+ if(state.phase==='driving'){
+  const old=state.speed;let accel=0;
+  const departure=state.autoDeparture>0;if(departure)state.autoDeparture=Math.max(0,state.autoDeparture-dt);
+  const tapPower=state.tapPower>0,tapBrake=state.tapBrake>0;state.tapPower=Math.max(0,state.tapPower-dt);state.tapBrake=Math.max(0,state.tapBrake-dt);
+  if(input.power||departure||tapPower)accel+=6.5;if(input.brake||tapBrake)accel-=10.5;
+  const remaining=(state.direction>0?1-state.progress:state.progress)*routeLength;
+  const stopLimit=Math.sqrt(Math.max(0,2*2.35*(remaining-.55)));
+  if(state.speed>stopLimit)accel=Math.min(accel,-2.35);
+  if(!input.power&&!input.brake&&!departure&&!tapPower&&!tapBrake)accel-=state.speed*.025;
+  if(state.condition==='Crosswind')accel-=.19;
+  state.speed=THREE.MathUtils.clamp(state.speed+accel*dt,0,maxSpeed);
+  state.lastPlayerAccel=(input.power||input.brake||tapPower||tapBrake)?(state.speed-old)/Math.max(dt,.001):0;
+  const u=THREE.MathUtils.clamp(state.progress,0,1),curvature=getCurvature(u),lateral=state.speed*state.speed*curvature;
+  let discomfort=0;
+  if(input.power||tapPower)discomfort+=Math.max(0,state.lastPlayerAccel-2.8)*.18*dt;
+  if(input.brake||tapBrake)discomfort+=Math.max(0,-state.lastPlayerAccel-3.1)*.21*dt;
+  discomfort+=Math.max(0,lateral-3.25)*1.12*dt;
+  if(state.condition==='Crosswind')discomfort+=Math.max(0,state.speed-9)*.022*dt;
+  state.comfort=THREE.MathUtils.clamp(state.comfort-discomfort+(state.speed<7?.75:.13)*dt,0,100);
+  if(discomfort>.16&&state.streak>0){state.streak=0;state.smoothTime=0;showToast('Streak broken. Find your balance to rebuild your tips.',3100);}
+  if(discomfort<.02&&state.comfort>72&&state.speed>4&&state.condition==='Steady'){
+   state.smoothTime+=dt;if(state.smoothTime>5){state.streak=Math.min(12,state.streak+1);state.coins+=5;state.smoothTime=0;}
+  }else state.smoothTime=Math.max(0,state.smoothTime-dt*.65);
+  state.progress+=state.direction*(state.speed/routeLength)*dt;
+  const remainingAfter=(state.direction>0?1-state.progress:state.progress)*routeLength;
+  const atEnd=state.direction>0?state.progress>=1:state.progress<=0;
+  if(atEnd||(remainingAfter<=.7&&state.speed<.8)){state.progress=state.direction>0?1:0;state.speed=0;arrive();}
+ }else if(state.phase==='arrived'){
+  state.speed=0;
+  if(state.doorsOpen&&state.doorPhase===1){state.doorTime+=dt;if(state.doorTime>1.65){state.passengers=state.pendingPassengers;ui.passengers.textContent=state.passengers;state.doorPhase=2;updateArrivalCard();showToast('A little shuffle, a little hello.',1900);}}
+ }else if(state.phase==='workshop'&&state.upgradeRunning){
+  state.upgradeProgress=Math.min(1,state.upgradeProgress+dt/6.4);
+  const p=state.upgradeProgress;ui.progress.style.width=`${Math.round(p*100)}%`;ui.workPercent.textContent=`${Math.round(p*100)}%`;
+  const first=p<.46;
+  ui.partOne.classList.toggle('active',first);ui.partTwo.classList.toggle('active',!first);
+  ui.workCaption.textContent=first?'Sit back and watch the workshop.':'Almost ready for the coast.';
+  if(first){ui.partOneDetail.textContent='Lifting the old part';ui.partTwoDetail.textContent='Preparing the tram';}else{ui.partOneDetail.textContent='Leaves laid in the old fitting';ui.partTwoDetail.textContent='Preparing the tram';}
+  if(p>=1)finishUpgrade();
+ }
+ const segment=state.direction>0?state.progress:1-state.progress;
+ state.condition=((segment>.37&&segment<.52)||(segment>.73&&segment<.79))?'Crosswind':'Steady';
+}
+function updateHud(dt){
+ const u=THREE.MathUtils.clamp(state.progress,0,1);const trip=state.direction>0?u:1-u;
+ ui.speed.textContent=String(Math.round(state.speed*3.6));ui.speedFill.style.width=`${Math.min(100,state.speed/maxSpeed*100)}%`;
+ ui.comfort.textContent=`${state.comfort>82?'Easy going':state.comfort>58?'A little sway':'Hold steady'} · ${Math.round(state.comfort)}%`;
+ ui.routeProgress.style.width=`${trip*100}%`;ui.routeDot.style.left=`${trip*100}%`;
+ ui.passengers.textContent=state.passengers;ui.coins.textContent=state.coins;ui.streak.textContent=state.streak;
+ ui.weather.textContent=state.condition;
+ document.body.classList.toggle('workshop-view',state.phase==='workshop');
+ if(toastTimer>0){toastTimer-=dt;if(toastTimer<=0)hideToast();}
+ updateArrivalCard();
+}
+function frame(time){
+ const dt=Math.min(.12,clock.getDelta());const now=time*.001;
+ updatePhysics(dt);updateCartAndCamera(dt,now);updateHud(dt);
+ const targetFog=state.phase==='workshop'?0.0017:.0021;scene.fog.density+=(targetFog-scene.fog.density)*(1-Math.exp(-dt*2));
+ renderer.render(scene,camera);requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+window.addEventListener('resize',()=>{camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.7));renderer.setSize(window.innerWidth,window.innerHeight);});
+updateRouteLabels();updateArrivalCard();updateWorkshopUI();
+</script>
+</body>
+</html>

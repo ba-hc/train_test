@@ -1,4 +1,16 @@
-# Benchmark Three.js — Codex Desktop vs OMP Fast vs OMP Custom vs OMP Custom V2
+# Benchmark Three.js — Codex Desktop, OMP Fast y OMP Custom V1–V3
+
+## Actualización: OMP Custom V3 (26-09-2026)
+
+| Entrega | Archivo |
+| --- | --- |
+| HTML final refinado | [`OMP_CUSTOM_V3.html`](./OMP_CUSTOM_V3.html) |
+| HTML bruto medido | [`OMP_CUSTOM_V3_raw.html`](./OMP_CUSTOM_V3_raw.html) |
+| Datos de la sesión | [`SESSION_INFO_V3.md`](./SESSION_INFO_V3.md) |
+| Análisis y límites | [`benchmark_V2_V3.md`](./benchmark_V2_V3.md) |
+| Capturas finales | [Escritorio](./OMP_CUSTOM_V3_desktop.png) · [Móvil](./OMP_CUSTOM_V3_mobile.png) |
+
+V3 bruto tardó 27,0 min, con 83 solicitudes, 88 herramientas, 8,03 millones de tokens y USD 0,3364 registrados. Frente a V2, son 45,4 % menos tiempo de sesión y 44,0 % menos tokens. **Esas cifras pertenecen al HTML bruto; el refinamiento visual y funcional posterior no está incluido.** La comparación histórica de cuatro versiones que sigue conserva su rúbrica y conclusiones originales; no incorpora V3 a su puntuación.
 
 Benchmark comparativo de cuatro ejecuciones del mismo tipo de tarea: construir un juego 3D de tranvía aéreo/coastal line con Three.js en un único HTML.
 
