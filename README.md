@@ -19,7 +19,7 @@ Benchmark comparativo de cuatro ejecuciones del mismo tipo de tarea: construir u
 
 ## Resumen ejecutivo
 
-- **Mejor artefacto global:** **OMP Custom V2**, por margen pequeño. Mejora presentación, audio, responsive/safe-area, robustez de startup y añade una escena de workshop independiente. No es una victoria limpia: pierde instancing y reintroduce un bug de acceso a Cloudworks desde cualquier lugar.
+- **Mejor HTML según la rúbrica estricta:** **OMP Custom V1** (8.9 vs 8.8). V1 conserva mejor gameplay y performance; **V2** gana en presentación, audio, responsive/safe-area y robustez de startup.
 - **Mejor gameplay/workshop:** **OMP Custom V1**. Cloudworks está restringido correctamente a Saltlight y las dos mejoras requieren interacción secuencial; V2 automatiza el refit.
 - **Mejor rendimiento gráfico:** **OMP Fast Mode**. Mantiene el uso más disciplinado de instancing, Points, DPR bajo y escena barata.
 - **Mejor eficiencia de harness:** **Codex Desktop**, todavía por amplio margen.
