@@ -1,0 +1,41 @@
+{
+  "first": "2026-09-26T22:02:55.424Z",
+  "last": "2026-09-26T22:43:18.832Z",
+  "wall_seconds": 2423.4,
+  "usage": {
+    "requests": 104,
+    "input": 335720,
+    "cacheRead": 11100544,
+    "cacheWrite": 0,
+    "output": 105097,
+    "reasoningTokens": 63586,
+    "totalTokens": 11541361,
+    "cost": 0.39425188000000033
+  },
+  "tools": {
+    "todo": 5,
+    "read": 14,
+    "glob": 2,
+    "write": 2,
+    "grep": 14,
+    "edit": 16,
+    "bash": 3,
+    "eval": 47
+  },
+  "tool_total": 103,
+  "max_assistant_gap_seconds": 319.6,
+  "compactions": [],
+  "models": [],
+  "tiers": [],
+  "events": {
+    "message": 208,
+    "custom": 104,
+    "title_change": 1,
+    "custom_message": 2
+  },
+  "session_id": "01a0dfbe-1c7a-76be-8d25-f7a6a25ce78a",
+  "model": "openai-codex/gpt-6-luna",
+  "thinking": "max",
+  "service_tier": "priority",
+  "measured_artifact_sha256": "5bb42f7a5d30660a9b401b898cd61bc15fb3e220c17571fdf30443beb74faa0d"
+}

@@ -1,4 +1,10 @@
-# Benchmark Three.js — Codex Desktop, OMP Fast y OMP Custom V1–V3
+# Benchmark Three.js — Codex Desktop, OMP Fast y OMP Custom V1–V4
+
+## Protocolo y resultado V4
+
+El [prompt canónico](./benchmark_prompt.txt) y la [rúbrica separada](./benchmark_acceptance.md) quedan versionados para futuras ejecuciones. La rúbrica distingue requisitos del prompt de preferencias de calidad añadidas por el evaluador.
+
+[V4 está archivado en `runs/v4/`](./runs/v4/benchmark_V3_V4.md) como resultado negativo reproducible. Su HTML, capturas, verificación y telemetría permanecen disponibles; V3 sigue siendo la versión publicada recomendada. V4 tardó 40,4 min y consumió 11,54 M tokens frente a 27,0 min y 8,03 M de V3 bruto. Estas cifras describen ejecuciones concretas y no aíslan cuál cambio de V4 causó la regresión.
 
 ## Actualización: OMP Custom V3 (26-09-2026)
 
