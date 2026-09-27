@@ -1,0 +1,80 @@
+{
+  "desktop": {
+    "title": "Cloudline — A seaside tram game",
+    "width": 1600,
+    "scrollWidth": 1600,
+    "canvas": true,
+    "buttons": [
+      {
+        "text": "Open doors",
+        "width": 282,
+        "height": 41
+      },
+      {
+        "text": "WPowerHold to accelerate",
+        "width": 139,
+        "height": 64
+      },
+      {
+        "text": "SBrakeEase your arrival",
+        "width": 134,
+        "height": 64
+      },
+      {
+        "text": "✦Hearth leavesSoft green vines & a leaf-trimmed awning",
+        "width": 328,
+        "height": 54
+      },
+      {
+        "text": "↗Little CompanionBrass lanterns & a tidy roof luggage rack",
+        "width": 328,
+        "height": 54
+      },
+      {
+        "text": "Begin the refit",
+        "width": 328,
+        "height": 43
+      }
+    ],
+    "errors": []
+  },
+  "mobile": {
+    "title": "Cloudline — A seaside tram game",
+    "width": 390,
+    "scrollWidth": 390,
+    "canvas": true,
+    "buttons": [
+      {
+        "text": "Open doors",
+        "width": 204,
+        "height": 41
+      },
+      {
+        "text": "WPowerHold to accelerate",
+        "width": 112,
+        "height": 57
+      },
+      {
+        "text": "SBrakeEase your arrival",
+        "width": 108,
+        "height": 57
+      },
+      {
+        "text": "✦Hearth leavesSoft green vines & a leaf-trimmed awning",
+        "width": 326,
+        "height": 50
+      },
+      {
+        "text": "↗Little CompanionBrass lanterns & a tidy roof luggage rack",
+        "width": 326,
+        "height": 50
+      },
+      {
+        "text": "Begin the refit",
+        "width": 326,
+        "height": 43
+      }
+    ],
+    "errors": []
+  }
+}

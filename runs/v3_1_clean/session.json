@@ -1,0 +1,58 @@
+{
+  "first": "2026-09-27T00:25:16.822Z",
+  "last": "2026-09-27T01:09:09.581Z",
+  "wall_seconds": 2632.8,
+  "usage": {
+    "requests": 113,
+    "input": 874477,
+    "cacheRead": 10003328,
+    "cacheWrite": 0,
+    "output": 166523,
+    "reasoningTokens": 116128,
+    "totalTokens": 11044328,
+    "cost": 0.54148496
+  },
+  "tools": {
+    "read": 40,
+    "todo": 15,
+    "glob": 1,
+    "bash": 4,
+    "write": 2,
+    "eval": 33,
+    "grep": 10,
+    "edit": 15,
+    "task": 1
+  },
+  "tool_total": 121,
+  "max_assistant_gap_seconds": 393.9,
+  "compactions": [
+    {
+      "timestamp": "2026-09-27T00:53:19.954Z",
+      "method": "remote",
+      "tokensBefore": 224482,
+      "tokensAfter": 17400
+    }
+  ],
+  "models": [],
+  "tiers": [],
+  "events": {
+    "message": 235,
+    "custom": 122,
+    "title_change": 1,
+    "custom_message": 3,
+    "compaction": 1
+  },
+  "sessionId": "01a0e040-7744-764a-b18f-8f6d2669fbb5",
+  "ompVersion": "18.3.0",
+  "model": "openai-codex/gpt-6-luna",
+  "effort": "max",
+  "serviceTier": "priority",
+  "promptSha256": "b5d0e0390ef75b5e0a33a5c62f92936894a85d0467989dd3205c265d4c3ed2b7",
+  "skillReads": [
+    "impeccable",
+    "impeccable/reference/new-work.md",
+    "impeccable/reference/init.md"
+  ],
+  "globalMcpServers": [],
+  "completion": "exit_code=0; session_exit normal"
+}

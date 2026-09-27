@@ -8,6 +8,8 @@ El [prompt canónico](./benchmark_prompt.txt) y la [rúbrica separada](./benchma
 
 [V3.1 observed](./runs/v3_1_observed/README.md) mide la corrección de MCP y referencias de skills con OMP 18.3.0. Tardó 27,9 min y consumió 9,04 M tokens. La sesión leyó una skill compartida desde `~/.agents/skills`, lo que motivó una segunda corrida con esa fuente desactivada. V3 sigue siendo la entrega recomendada.
 
+[V3.1 clean](./runs/v3_1_clean/README.md) mide el perfil mínimo definitivo: MCP global vacío, solo Impeccable visible y OMP 18.3.0. Tardó 43,9 min, con 113 solicitudes, 121 herramientas y 11,04 M tokens. Bajó las llamadas de navegador de 38 a 33, pero empeoró tiempo, tokens y coste frente a V3 bruto. Su HTML y sus capturas se conservan como resultado negativo; **V3 sigue siendo el HTML principal recomendado**.
+
 ## Actualización: OMP Custom V3 (26-09-2026)
 
 | Entrega | Archivo |

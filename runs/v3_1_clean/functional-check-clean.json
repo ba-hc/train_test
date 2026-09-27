@@ -1,0 +1,37 @@
+{
+  "saltlightDoors": {
+    "doorsOpen": true,
+    "action": "Depart for Mango Tide"
+  },
+  "accelerating": {
+    "mode": "driving",
+    "speed": 0.1467399999999996
+  },
+  "braking": {
+    "speed": 0.1265199999999998,
+    "comfort": 99.9522
+  },
+  "mangoArrival": {
+    "heading": "Mango Tide",
+    "coins": 99,
+    "mode": "station"
+  },
+  "mangoDoors": {
+    "action": "Visit Cloudworks",
+    "doorsOpen": true
+  },
+  "workshopStart": {
+    "mode": "workshop",
+    "action": "Begin the refit"
+  },
+  "afterOneFit": {
+    "done": true,
+    "action": "All aboard"
+  },
+  "afterExit": {
+    "mode": "driving",
+    "direction": -1,
+    "destination": "Saltlight Terminus"
+  },
+  "errors": []
+}
